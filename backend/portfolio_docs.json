@@ -1,0 +1,50 @@
+[
+  {
+    "id": "experience_1",
+    "content": "Nico worked as a teaching assistant for an introductory computer science course, where he helped students understand programming concepts and debug their assignments."
+  },
+  {
+    "id": "experience_2",
+    "content": "Nico completed an internship at a local tech startup, where he contributed to building a web-based dashboard for monitoring IoT devices. He worked on both the backend APIs and the frontend interface."
+  },
+  {
+    "id": "project_4",
+    "content": "Nico developed a BMI calculator application with randomized styling using CSS variables and React. The app lets users input height and weight, supports both metric and imperial units, and displays calculated BMI values with health categories."
+  },
+  {
+    "id": "project_5",
+    "content": "Nico created a Dungeons & Dragons companion app in Java/Kotlin. The app assists with character creation, monster stats, and includes AI-powered tools for dungeon masters."
+  },
+  {
+    "id": "project_6",
+    "content": "Nico designed and implemented a 2-bit adder using assembly language and breadboard hardware. The project combined theoretical computer architecture with practical circuit design."
+  },
+  {
+    "id": "achievement_1",
+    "content": "Nico maintained a GPA of 3.31 while balancing coursework, side projects, and extracurricular activities."
+  },
+  {
+    "id": "achievement_2",
+    "content": "Nico presented a project on distributed systems at a student research showcase, demonstrating the use of RabbitMQ for scalable data pipelines."
+  },
+  {
+    "id": "soft_skills_1",
+    "content": "Nico has strong communication and collaboration skills, gained through group projects and working as a teaching assistant."
+  },
+  {
+    "id": "soft_skills_2",
+    "content": "Nico is highly adaptable and enjoys learning new technologies quickly, applying them to real-world projects."
+  },
+  {
+    "id": "career_goal_1",
+    "content": "Nico aspires to work as an AI/ML engineer, developing intelligent systems and applications that integrate machine learning with scalable web technologies."
+  },
+  {
+    "id": "extracurricular_1",
+    "content": "Nico is an active member of the computer science club at UW-Green Bay, where he collaborates on hackathons and attends tech talks."
+  },
+  {
+    "id": "extracurricular_2",
+    "content": "Outside of academics, Nico enjoys experimenting with new frameworks, contributing to open-source projects, and exploring futuristic UI/UX design concepts."
+  }
+]
