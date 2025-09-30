@@ -44,6 +44,7 @@ export default function NeuralNetworkViz({ isProcessing, metadata, processingSta
   const nodesRef = useRef<Node[]>([]);
   const connectionsRef = useRef<Connection[]>([]);
   const timeRef = useRef<number>(0);
+  const layersRef = useRef<Array<{ name: string; y: number }>>([]);
 
   // Initialize network structure
   useEffect(() => {
@@ -65,9 +66,9 @@ export default function NeuralNetworkViz({ isProcessing, metadata, processingSta
 
     // Network architecture
     const layers = [
-      { name: 'Input (Embedding)', nodeCount: 16, y: 0.2 },      // Represent 1536 dims with 16 nodes
-      { name: 'Search (Retrieval)', nodeCount: 3, y: 0.5 },      // Top-3 matches
-      { name: 'Output (Generation)', nodeCount: 8, y: 0.8 }      // Token generation
+      { name: 'Embedding', nodeCount: 16, y: 0.2 },      // Represent 1536 dims with 16 nodes
+      { name: 'Retrieval', nodeCount: 3, y: 0.5 },      // Top-3 matches
+      { name: 'Generation', nodeCount: 8, y: 0.8 }      // Token generation
     ];
 
     // Create nodes
@@ -103,6 +104,7 @@ export default function NeuralNetworkViz({ isProcessing, metadata, processingSta
 
     nodesRef.current = nodes;
     connectionsRef.current = connections;
+    layersRef.current = layers;
 
     return () => {
       window.removeEventListener('resize', updateSize);
@@ -220,6 +222,35 @@ export default function NeuralNetworkViz({ isProcessing, metadata, processingSta
         }
       });
 
+      // Draw layer labels (always visible)
+      const layers = layersRef.current;
+      ctx.font = '12px sans-serif';
+      ctx.textAlign = 'left';
+
+      layers.forEach((layer, idx) => {
+        const isActive =
+          (processingStage === 'embedding' && idx === 0) ||
+          (processingStage === 'retrieval' && idx === 1) ||
+          (processingStage === 'generation' && idx === 2);
+
+        const x = width * 0.05;
+        let y = layer.y * height;
+
+        // Adjust text position based on layer
+        if (idx === 0) {
+          // Top layer: text above
+          y -= 50;
+        } else if (idx === 2) {
+          // Bottom layer: text below
+          y += 50;
+        }
+
+        // Brighter when active
+        const alpha = isActive && isProcessing ? 0.95 : 0.5;
+        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+        ctx.fillText(layer.name, x, y);
+      });
+
       animationFrameRef.current = requestAnimationFrame(animate);
     };
 
@@ -235,7 +266,8 @@ export default function NeuralNetworkViz({ isProcessing, metadata, processingSta
   return (
     <div className="neural-network-viz">
       <canvas ref={canvasRef} />
-      {metadata && (
+
+      {metadata && !isProcessing && (
         <div className="network-stats">
           <div className="stat-item">
             <span className="stat-label">Embedding</span>
