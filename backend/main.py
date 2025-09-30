@@ -11,7 +11,7 @@ from pinecone import Pinecone
 from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../.env"))
+load_dotenv()
 
 # Initialize FastAPI app
 app = FastAPI(title="NicoBot API")
