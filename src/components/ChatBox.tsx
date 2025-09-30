@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
+import SuggestedQuestions from './SuggestedQuestions';
 import './ChatBox.css';
 
 interface Message {
@@ -16,8 +17,12 @@ const ChatBox = forwardRef<ChatBoxRef>((props, ref) => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   };
 
   useEffect(() => {
@@ -70,22 +75,17 @@ const ChatBox = forwardRef<ChatBoxRef>((props, ref) => {
   };
 
   return (
-    <>
-      <div className="chatbox-container">
-        <div className="chat-header">
-          <div className="header-content">
-            <h1 className="header-title">Nico Bourel</h1>
-            <p className="header-subtitle">AI-Powered Portfolio Assistant</p>
-          </div>
-        </div>
-
-        <div className="messages-container">
+    <div className="chatbox-container">
+      <div className="messages-container" ref={messagesContainerRef}>
         {messages.length === 0 && (
-          <div className="welcome-message">
-            <div className="welcome-icon">🤖</div>
-            <h2>Hey there! I'm NicoBot</h2>
-            <p>Your AI guide to Nico's portfolio. Ask me anything about his projects, skills, experience, or education!</p>
-          </div>
+          <>
+            <div className="welcome-message">
+              <div className="welcome-icon">🤖</div>
+              <h2>Hey there! I'm NicoBot</h2>
+              <p>Your AI guide to Nico's portfolio. Ask me anything about his projects, skills, experience, or education!</p>
+            </div>
+            <SuggestedQuestions onQuestionClick={sendMessage} />
+          </>
         )}
 
         {messages.map((message, index) => (
@@ -112,24 +112,22 @@ const ChatBox = forwardRef<ChatBoxRef>((props, ref) => {
           </div>
         )}
 
-          <div ref={messagesEndRef} />
-        </div>
-
-        <form onSubmit={handleSubmit} className="input-container">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask me anything about Nico..."
-            disabled={isLoading}
-            className="chat-input"
-          />
-          <button type="submit" disabled={isLoading || !input.trim()} className="send-button">
-            <span className="send-icon">➤</span>
-          </button>
-        </form>
       </div>
-    </>
+
+      <form onSubmit={handleSubmit} className="input-container">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Ask me anything about Nico..."
+          disabled={isLoading}
+          className="chat-input"
+        />
+        <button type="submit" disabled={isLoading || !input.trim()} className="send-button">
+          <span className="send-icon">➤</span>
+        </button>
+      </form>
+    </div>
   );
 });
 

@@ -13,7 +13,7 @@ function App() {
   return (
     <div className="app-container">
       <ChatBox ref={chatBoxRef} />
-      <SuggestedQuestions onQuestionClick={handleQuestionSelect} />
+      {/* Suggested questions will be moved inline inside ChatBox */}
     </div>
   )
 }
