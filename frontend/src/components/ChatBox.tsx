@@ -69,7 +69,7 @@ const ChatBox = forwardRef<ChatBoxRef, ChatBoxProps>(({ onMetadataUpdate, onStag
       setTimeout(() => onStageUpdate?.('retrieval'), 300);
       setTimeout(() => onStageUpdate?.('generation'), 800);
 
-      const response = await fetch('http://localhost:8000/chat', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
