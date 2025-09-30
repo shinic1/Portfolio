@@ -16,10 +16,15 @@ load_dotenv()
 # Initialize FastAPI app
 app = FastAPI(title="NicoBot API")
 
-# Configure CORS for local development
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://*.vercel.app",
+        os.getenv("FRONTEND_URL", "*")
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
