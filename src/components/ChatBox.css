@@ -9,13 +9,21 @@
 
 .messages-container {
   flex: 1;
-  overflow-y: scroll;
+  overflow-y: auto;
   overflow-x: hidden;
   padding: 2rem;
+  padding-bottom: 3rem;
   background: transparent;
   max-width: 800px;
   width: 100%;
   margin: 0 auto;
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  height: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 .welcome-message {
@@ -117,6 +125,8 @@
   line-height: 1.6;
   word-wrap: break-word;
   font-size: 0.95rem;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .message.user .message-content {
@@ -186,20 +196,10 @@
   display: flex;
   gap: 1rem;
   padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 -8px 32px 0 rgba(31, 38, 135, 0.15);
+  background: transparent;
   justify-content: center;
   align-items: center;
-  z-index: 100;
-}
-
-.input-container > input,
-.input-container > button {
-  position: relative;
-  z-index: 101;
+  z-index: 1000;
 }
 
 .input-container > input {
@@ -210,16 +210,17 @@
 .chat-input {
   flex: 1;
   padding: 1rem 1.5rem;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(10px) saturate(180%);
-  -webkit-backdrop-filter: blur(10px) saturate(180%);
-  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(25px) saturate(200%);
+  -webkit-backdrop-filter: blur(25px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 24px;
   font-size: 1rem;
   transition: all 0.3s ease;
   outline: none;
   color: rgba(255, 255, 255, 0.95);
-  box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 24px 0 rgba(31, 38, 135, 0.3),
+              inset 0 0 30px rgba(255, 255, 255, 0.1);
 }
 
 .chat-input::placeholder {
@@ -242,11 +243,11 @@
   width: 52px;
   height: 52px;
   padding: 0;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%);
-  backdrop-filter: blur(10px) saturate(180%);
-  -webkit-backdrop-filter: blur(10px) saturate(180%);
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
+  backdrop-filter: blur(25px) saturate(200%);
+  -webkit-backdrop-filter: blur(25px) saturate(200%);
   color: white;
-  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
   font-size: 1.2rem;
   cursor: pointer;
@@ -254,8 +255,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 32px 0 rgba(102, 126, 234, 0.4),
-              inset 0 0 20px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 24px 0 rgba(102, 126, 234, 0.5),
+              inset 0 0 30px rgba(255, 255, 255, 0.15);
   position: relative;
   overflow: hidden;
 }
