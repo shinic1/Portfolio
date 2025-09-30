@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
-import SuggestedQuestions from './SuggestedQuestions';
 import './ChatBox.css';
 
 interface Message {
@@ -78,14 +77,11 @@ const ChatBox = forwardRef<ChatBoxRef>((props, ref) => {
     <div className="chatbox-container">
       <div className="messages-container" ref={messagesContainerRef}>
         {messages.length === 0 && (
-          <>
-            <div className="welcome-message">
-              <div className="welcome-icon">🤖</div>
-              <h2>Hey there! I'm NicoBot</h2>
-              <p>Your AI guide to Nico's portfolio. Ask me anything about his projects, skills, experience, or education!</p>
-            </div>
-            <SuggestedQuestions onQuestionClick={sendMessage} />
-          </>
+          <div className="welcome-message">
+            <div className="welcome-icon">🤖</div>
+            <h2>Hey there! I'm NicoBot</h2>
+            <p>Your AI guide to Nico's portfolio. Ask me anything about his projects, skills, experience, or education!</p>
+          </div>
         )}
 
         {messages.map((message, index) => (

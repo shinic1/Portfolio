@@ -13,7 +13,6 @@ export default function SuggestedQuestions({ onQuestionClick }: SuggestedQuestio
 
   return (
     <div className="suggested-questions">
-      <p className="suggested-label">Suggested questions:</p>
       <div className="questions-grid">
         {questions.map((question, index) => (
           <button
