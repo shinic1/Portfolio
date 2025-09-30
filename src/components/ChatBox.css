@@ -191,8 +191,8 @@
 .input-container {
   position: fixed;
   bottom: 0;
-  left: 0;
   right: 0;
+  width: 50%;
   display: flex;
   gap: 1rem;
   padding: 1.5rem;
@@ -200,10 +200,11 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  box-sizing: border-box;
 }
 
 .input-container > input {
-  max-width: 800px;
+  max-width: none;
   width: 100%;
 }
 

@@ -1,14 +1,13 @@
 .suggested-questions {
   position: fixed;
   bottom: 120px;
-  left: 50%;
-  transform: translateX(-50%);
+  right: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-  width: 100%;
-  max-width: 800px;
+  width: 50%;
+  max-width: none;
   z-index: 5;
   pointer-events: none;
   padding: 0;

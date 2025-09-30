@@ -1,19 +1,44 @@
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import './ChatBox.css';
 
+interface NetworkMetadata {
+  embedding_stats: {
+    dimension: number;
+    norm: number;
+    active_dimensions: number;
+  };
+  retrieval_stats: Array<{
+    score: number;
+    doc_id: string;
+  }>;
+  generation_stats: {
+    tokens: number;
+    time_ms: number;
+  };
+}
+
 interface Message {
   role: 'user' | 'assistant';
   content: string;
+  metadata?: NetworkMetadata;
 }
 
 export interface ChatBoxRef {
   sendMessage: (question: string) => void;
+  isLoading: boolean;
+  latestMetadata?: NetworkMetadata;
 }
 
-const ChatBox = forwardRef<ChatBoxRef>((props, ref) => {
+interface ChatBoxProps {
+  onMetadataUpdate?: (metadata: NetworkMetadata) => void;
+  onStageUpdate?: (stage: 'embedding' | 'retrieval' | 'generation') => void;
+}
+
+const ChatBox = forwardRef<ChatBoxRef, ChatBoxProps>(({ onMetadataUpdate, onStageUpdate }, ref) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [latestMetadata, setLatestMetadata] = useState<NetworkMetadata | undefined>();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -37,6 +62,13 @@ const ChatBox = forwardRef<ChatBoxRef>((props, ref) => {
     setIsLoading(true);
 
     try {
+      // Stage 1: Embedding (starts immediately)
+      onStageUpdate?.('embedding');
+
+      // Simulate stage progression based on typical timing
+      setTimeout(() => onStageUpdate?.('retrieval'), 300);
+      setTimeout(() => onStageUpdate?.('generation'), 800);
+
       const response = await fetch('http://localhost:8000/chat', {
         method: 'POST',
         headers: {
@@ -50,8 +82,18 @@ const ChatBox = forwardRef<ChatBoxRef>((props, ref) => {
       }
 
       const data = await response.json();
-      const assistantMessage: Message = { role: 'assistant', content: data.reply };
+      const assistantMessage: Message = {
+        role: 'assistant',
+        content: data.reply,
+        metadata: data.metadata
+      };
       setMessages(prev => [...prev, assistantMessage]);
+
+      // Update metadata for visualization
+      if (data.metadata) {
+        setLatestMetadata(data.metadata);
+        onMetadataUpdate?.(data.metadata);
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       const errorMessage: Message = {
@@ -65,7 +107,9 @@ const ChatBox = forwardRef<ChatBoxRef>((props, ref) => {
   };
 
   useImperativeHandle(ref, () => ({
-    sendMessage
+    sendMessage,
+    isLoading,
+    latestMetadata
   }));
 
   const handleSubmit = (e: React.FormEvent) => {

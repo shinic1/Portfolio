@@ -36,8 +36,27 @@ pinecone_index = None
 class ChatRequest(BaseModel):
     question: str
 
+class EmbeddingStats(BaseModel):
+    dimension: int
+    norm: float
+    active_dimensions: int
+
+class RetrievalMatch(BaseModel):
+    score: float
+    doc_id: str
+
+class GenerationStats(BaseModel):
+    tokens: int
+    time_ms: int
+
+class ChatMetadata(BaseModel):
+    embedding_stats: EmbeddingStats
+    retrieval_stats: list[RetrievalMatch]
+    generation_stats: GenerationStats
+
 class ChatResponse(BaseModel):
     reply: str
+    metadata: ChatMetadata
 
 @app.on_event("startup")
 async def load_index():
@@ -57,19 +76,29 @@ async def load_index():
         print(f"Error: {e}")
         raise
 
-def embed_query(query: str) -> list[float]:
-    """Generate embedding for a query using OpenAI."""
+def embed_query(query: str) -> tuple[list[float], EmbeddingStats]:
+    """Generate embedding for a query using OpenAI and return stats."""
     response = openai_client.embeddings.create(
         model="text-embedding-3-small",
         input=[query]
     )
-    return response.data[0].embedding
+    embedding = response.data[0].embedding
 
-def retrieve_relevant_docs(query: str, k: int = 3) -> list[str]:
-    """Retrieve top k relevant documents from Pinecone."""
-    # Generate query embedding
-    query_embedding = embed_query(query)
+    # Calculate stats
+    import math
+    norm = math.sqrt(sum(x * x for x in embedding))
+    active_dims = sum(1 for x in embedding if abs(x) > 0.01)  # Count significant dimensions
 
+    stats = EmbeddingStats(
+        dimension=len(embedding),
+        norm=round(norm, 4),
+        active_dimensions=active_dims
+    )
+
+    return embedding, stats
+
+def retrieve_relevant_docs(query_embedding: list[float], k: int = 3) -> tuple[list[str], list[RetrievalMatch]]:
+    """Retrieve top k relevant documents from Pinecone and return stats."""
     # Query Pinecone
     results = pinecone_index.query(
         vector=query_embedding,
@@ -77,16 +106,24 @@ def retrieve_relevant_docs(query: str, k: int = 3) -> list[str]:
         include_metadata=True
     )
 
-    # Extract content from results
+    # Extract content and match stats from results
     relevant_docs = []
-    for match in results.matches:
+    retrieval_matches = []
+    for i, match in enumerate(results.matches):
         if match.metadata and "content" in match.metadata:
             relevant_docs.append(match.metadata["content"])
+            retrieval_matches.append(RetrievalMatch(
+                score=round(match.score, 4),
+                doc_id=f"doc_{i}"
+            ))
 
-    return relevant_docs
+    return relevant_docs, retrieval_matches
 
-def generate_response(query: str, context_docs: list[str]) -> str:
-    """Generate response using GPT-4o-mini with retrieved context."""
+def generate_response(query: str, context_docs: list[str]) -> tuple[str, GenerationStats]:
+    """Generate response using GPT-4o-mini with retrieved context and return stats."""
+    import time
+    start_time = time.time()
+
     context = "\n\n".join(context_docs)
 
     system_prompt = """You are Nico Bourel's portfolio assistant. Your role is to help visitors learn about Nico's background, skills, projects, and experience.
@@ -112,7 +149,18 @@ Answer based only on the context above:"""
         max_tokens=500
     )
 
-    return response.choices[0].message.content
+    end_time = time.time()
+    time_ms = int((end_time - start_time) * 1000)
+
+    reply = response.choices[0].message.content
+    tokens = response.usage.total_tokens if response.usage else 0
+
+    stats = GenerationStats(
+        tokens=tokens,
+        time_ms=time_ms
+    )
+
+    return reply, stats
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
@@ -121,21 +169,40 @@ async def chat(request: ChatRequest):
     1. Embed user question
     2. Retrieve relevant documents from Pinecone
     3. Generate response using GPT-4o-mini
+    Returns response with metadata about each pipeline stage
     """
     if not request.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty")
 
     try:
-        # Retrieve relevant documents
-        relevant_docs = retrieve_relevant_docs(request.question, k=3)
+        # Step 1: Generate embedding
+        query_embedding, embedding_stats = embed_query(request.question)
+
+        # Step 2: Retrieve relevant documents
+        relevant_docs, retrieval_matches = retrieve_relevant_docs(query_embedding, k=3)
 
         if not relevant_docs:
-            return ChatResponse(reply="I don't have any information to answer that question.")
+            # Return empty metadata if no docs found
+            return ChatResponse(
+                reply="I don't have any information to answer that question.",
+                metadata=ChatMetadata(
+                    embedding_stats=embedding_stats,
+                    retrieval_stats=[],
+                    generation_stats=GenerationStats(tokens=0, time_ms=0)
+                )
+            )
 
-        # Generate response
-        reply = generate_response(request.question, relevant_docs)
+        # Step 3: Generate response
+        reply, generation_stats = generate_response(request.question, relevant_docs)
 
-        return ChatResponse(reply=reply)
+        return ChatResponse(
+            reply=reply,
+            metadata=ChatMetadata(
+                embedding_stats=embedding_stats,
+                retrieval_stats=retrieval_matches,
+                generation_stats=generation_stats
+            )
+        )
 
     except Exception as e:
         print(f"Error processing chat request: {e}")
