@@ -40,7 +40,7 @@ interface Connection {
 
 export default function NeuralNetworkViz({ isProcessing, metadata, processingStage = 'idle' }: NeuralNetworkVizProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | undefined>(undefined);
   const nodesRef = useRef<Node[]>([]);
   const connectionsRef = useRef<Connection[]>([]);
   const timeRef = useRef<number>(0);

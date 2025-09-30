@@ -39,8 +39,6 @@ const ChatBox = forwardRef<ChatBoxRef, ChatBoxProps>(({ onMetadataUpdate, onStag
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [latestMetadata, setLatestMetadata] = useState<NetworkMetadata | undefined>();
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
