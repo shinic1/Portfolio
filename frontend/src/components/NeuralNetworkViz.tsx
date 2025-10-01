@@ -236,7 +236,7 @@ export default function NeuralNetworkViz({ isProcessing, metadata, processingSta
 
       // Draw layer labels (always visible)
       const layers = layersRef.current;
-      ctx.font = '12px sans-serif';
+      ctx.font = 'bold 14px sans-serif';
       ctx.textAlign = 'left';
 
       layers.forEach((layer, idx) => {
@@ -257,10 +257,27 @@ export default function NeuralNetworkViz({ isProcessing, metadata, processingSta
           y += 50;
         }
 
-        // Brighter when active
-        const alpha = isActive && isProcessing ? 0.95 : 0.5;
-        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-        ctx.fillText(layer.name, x, y);
+        // Glow effect when active
+        if (isActive && isProcessing) {
+          // Outer glow
+          ctx.shadowBlur = 20;
+          ctx.shadowColor = 'rgba(102, 126, 234, 0.8)';
+          ctx.fillStyle = 'rgba(255, 255, 255, 1)';
+          ctx.fillText(layer.name, x, y);
+
+          // Inner bright glow
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = 'rgba(118, 75, 162, 0.9)';
+          ctx.fillStyle = 'rgba(255, 255, 255, 1)';
+          ctx.fillText(layer.name, x, y);
+
+          // Reset shadow
+          ctx.shadowBlur = 0;
+        } else {
+          // Dim when inactive
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+          ctx.fillText(layer.name, x, y);
+        }
       });
 
       animationFrameRef.current = requestAnimationFrame(animate);
