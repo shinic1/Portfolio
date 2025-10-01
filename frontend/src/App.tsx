@@ -65,7 +65,7 @@ function App() {
         <button
           className={`geek-mode-toggle ${geekMode ? 'active' : ''}`}
           onClick={() => setGeekMode(!geekMode)}
-          title={geekMode ? "Disable Geek Mode" : "Enable Geek Mode"}
+          title={geekMode ? "Disable Advanced Mode" : "Enable Advanced Mode"}
         >
           <svg className="toggle-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
