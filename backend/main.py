@@ -45,19 +45,30 @@ class EmbeddingStats(BaseModel):
     dimension: int
     norm: float
     active_dimensions: int
+    sample_values: list[float]  # First 10 dimensions for geek mode
+    time_ms: int
+    model: str  # Embedding model used
+    sparsity: float  # Percentage of near-zero values
 
 class RetrievalMatch(BaseModel):
     score: float
     doc_id: str
+    snippet: str  # First 200 chars of document for geek mode
 
 class GenerationStats(BaseModel):
     tokens: int
     time_ms: int
+    model: str  # LLM model used
+    prompt_tokens: int
+    completion_tokens: int
 
 class ChatMetadata(BaseModel):
     embedding_stats: EmbeddingStats
     retrieval_stats: list[RetrievalMatch]
     generation_stats: GenerationStats
+    confidence_score: float  # Average of retrieval scores (0-1)
+    total_time_ms: int  # Total pipeline time
+    retrieval_time_ms: int  # Time spent on vector search
 
 class ChatResponse(BaseModel):
     reply: str
@@ -83,46 +94,64 @@ async def load_index():
 
 def embed_query(query: str) -> tuple[list[float], EmbeddingStats]:
     """Generate embedding for a query using OpenAI and return stats."""
+    import time
+    import math
+
+    embedding_model = "text-embedding-3-small"
+    start_time = time.time()
     response = openai_client.embeddings.create(
-        model="text-embedding-3-small",
+        model=embedding_model,
         input=[query]
     )
     embedding = response.data[0].embedding
+    end_time = time.time()
 
     # Calculate stats
-    import math
     norm = math.sqrt(sum(x * x for x in embedding))
     active_dims = sum(1 for x in embedding if abs(x) > 0.01)  # Count significant dimensions
+    near_zero = sum(1 for x in embedding if abs(x) < 0.001)  # Count near-zero values
+    sparsity = (near_zero / len(embedding)) * 100  # Sparsity percentage
 
     stats = EmbeddingStats(
         dimension=len(embedding),
         norm=round(norm, 4),
-        active_dimensions=active_dims
+        active_dimensions=active_dims,
+        sample_values=[round(x, 6) for x in embedding[:10]],  # First 10 dimensions
+        time_ms=int((end_time - start_time) * 1000),
+        model=embedding_model,
+        sparsity=round(sparsity, 2)
     )
 
     return embedding, stats
 
-def retrieve_relevant_docs(query_embedding: list[float], k: int = 3) -> tuple[list[str], list[RetrievalMatch]]:
+def retrieve_relevant_docs(query_embedding: list[float], k: int = 3) -> tuple[list[str], list[RetrievalMatch], int]:
     """Retrieve top k relevant documents from Pinecone and return stats."""
+    import time
+
+    start_time = time.time()
     # Query Pinecone
     results = pinecone_index.query(
         vector=query_embedding,
         top_k=k,
         include_metadata=True
     )
+    end_time = time.time()
+    retrieval_time_ms = int((end_time - start_time) * 1000)
 
     # Extract content and match stats from results
     relevant_docs = []
     retrieval_matches = []
     for i, match in enumerate(results.matches):
         if match.metadata and "content" in match.metadata:
-            relevant_docs.append(match.metadata["content"])
+            content = match.metadata["content"]
+            relevant_docs.append(content)
             retrieval_matches.append(RetrievalMatch(
                 score=round(match.score, 4),
-                doc_id=f"doc_{i}"
+                doc_id=match.id if hasattr(match, 'id') else f"doc_{i}",
+                snippet=content[:200] + "..." if len(content) > 200 else content
             ))
 
-    return relevant_docs, retrieval_matches
+    return relevant_docs, retrieval_matches, retrieval_time_ms
 
 def generate_response(query: str, context_docs: list[str]) -> tuple[str, GenerationStats]:
     """Generate response using GPT-4o-mini with retrieved context and return stats."""
@@ -130,6 +159,7 @@ def generate_response(query: str, context_docs: list[str]) -> tuple[str, Generat
     start_time = time.time()
 
     context = "\n\n".join(context_docs)
+    generation_model = "gpt-4o-mini"
 
     system_prompt = """You are Nico Bourel's portfolio assistant. Your role is to help visitors learn about Nico's background, skills, projects, and experience.
 
@@ -149,7 +179,7 @@ Question: {query}
 Answer based only on the context above:"""
 
     response = openai_client.chat.completions.create(
-        model="gpt-4o-mini",
+        model=generation_model,
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
@@ -162,11 +192,16 @@ Answer based only on the context above:"""
     time_ms = int((end_time - start_time) * 1000)
 
     reply = response.choices[0].message.content
-    tokens = response.usage.total_tokens if response.usage else 0
+    prompt_tokens = response.usage.prompt_tokens if response.usage else 0
+    completion_tokens = response.usage.completion_tokens if response.usage else 0
+    total_tokens = response.usage.total_tokens if response.usage else 0
 
     stats = GenerationStats(
-        tokens=tokens,
-        time_ms=time_ms
+        tokens=total_tokens,
+        time_ms=time_ms,
+        model=generation_model,
+        prompt_tokens=prompt_tokens,
+        completion_tokens=completion_tokens
     )
 
     return reply, stats
@@ -184,32 +219,54 @@ async def chat(request: ChatRequest):
         raise HTTPException(status_code=400, detail="Question cannot be empty")
 
     try:
+        import time
+        pipeline_start = time.time()
+
         # Step 1: Generate embedding
         query_embedding, embedding_stats = embed_query(request.question)
 
         # Step 2: Retrieve relevant documents
-        relevant_docs, retrieval_matches = retrieve_relevant_docs(query_embedding, k=3)
+        relevant_docs, retrieval_matches, retrieval_time_ms = retrieve_relevant_docs(query_embedding, k=3)
 
         if not relevant_docs:
             # Return empty metadata if no docs found
+            total_time = int((time.time() - pipeline_start) * 1000)
             return ChatResponse(
                 reply="I don't have any information to answer that question.",
                 metadata=ChatMetadata(
                     embedding_stats=embedding_stats,
                     retrieval_stats=[],
-                    generation_stats=GenerationStats(tokens=0, time_ms=0)
+                    generation_stats=GenerationStats(
+                        tokens=0,
+                        time_ms=0,
+                        model="gpt-4o-mini",
+                        prompt_tokens=0,
+                        completion_tokens=0
+                    ),
+                    confidence_score=0.0,
+                    total_time_ms=total_time,
+                    retrieval_time_ms=retrieval_time_ms
                 )
             )
 
         # Step 3: Generate response
         reply, generation_stats = generate_response(request.question, relevant_docs)
 
+        # Calculate confidence score (average of retrieval scores)
+        confidence_score = sum(match.score for match in retrieval_matches) / len(retrieval_matches) if retrieval_matches else 0.0
+
+        # Calculate total pipeline time
+        total_time = int((time.time() - pipeline_start) * 1000)
+
         return ChatResponse(
             reply=reply,
             metadata=ChatMetadata(
                 embedding_stats=embedding_stats,
                 retrieval_stats=retrieval_matches,
-                generation_stats=generation_stats
+                generation_stats=generation_stats,
+                confidence_score=round(confidence_score, 4),
+                total_time_ms=total_time,
+                retrieval_time_ms=retrieval_time_ms
             )
         )
 

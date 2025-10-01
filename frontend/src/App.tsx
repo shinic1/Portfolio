@@ -9,15 +9,26 @@ interface NetworkMetadata {
     dimension: number;
     norm: number;
     active_dimensions: number;
+    sample_values: number[];
+    time_ms: number;
+    model: string;
+    sparsity: number;
   };
   retrieval_stats: Array<{
     score: number;
     doc_id: string;
+    snippet: string;
   }>;
   generation_stats: {
     tokens: number;
     time_ms: number;
+    model: string;
+    prompt_tokens: number;
+    completion_tokens: number;
   };
+  confidence_score: number;
+  total_time_ms: number;
+  retrieval_time_ms: number;
 }
 
 function App() {
@@ -29,6 +40,7 @@ function App() {
   const [metadata, setMetadata] = useState<NetworkMetadata | undefined>()
   const [isProcessing, setIsProcessing] = useState(false)
   const [processingStage, setProcessingStage] = useState<'embedding' | 'retrieval' | 'generation' | 'idle'>('idle')
+  const [geekMode, setGeekMode] = useState(false)
 
   const handleQuestionSelect = (question: string) => {
     chatBoxRef.current?.sendMessage(question)
@@ -50,10 +62,19 @@ function App() {
   return (
     <div className="app-container">
       <div className="left-panel">
+        <button
+          className={`geek-mode-toggle ${geekMode ? 'active' : ''}`}
+          onClick={() => setGeekMode(!geekMode)}
+          title={geekMode ? "Disable Geek Mode" : "Enable Geek Mode"}
+        >
+          <span className="toggle-icon">🤓</span>
+          <span className="toggle-text">Geek Mode</span>
+        </button>
         <NeuralNetworkViz
           isProcessing={isProcessing}
           metadata={metadata}
           processingStage={processingStage}
+          geekMode={geekMode}
         />
       </div>
       <div className="right-panel">
@@ -61,6 +82,7 @@ function App() {
           ref={chatBoxRef}
           onMetadataUpdate={handleMetadataUpdate}
           onStageUpdate={handleStageUpdate}
+          geekMode={geekMode}
         />
         <SuggestedQuestions onQuestionClick={handleQuestionSelect} />
       </div>

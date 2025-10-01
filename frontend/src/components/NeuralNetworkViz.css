@@ -50,3 +50,235 @@
   font-weight: 600;
   font-family: 'Courier New', monospace;
 }
+
+/* Technical Details Panel (Geek Mode) */
+.technical-details-panel {
+  position: absolute;
+  bottom: 6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 800px;
+  max-height: 65vh;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  padding: 1.5rem;
+  background: rgba(10, 10, 15, 0.98);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 3px solid rgba(102, 126, 234, 0.5);
+  border-radius: 20px;
+  box-shadow: 0 12px 48px 0 rgba(31, 38, 135, 0.6),
+              inset 0 0 30px rgba(102, 126, 234, 0.2);
+  animation: slideUp 0.4s ease-out;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  will-change: scroll-position;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.tech-section {
+  margin-bottom: 1.5rem;
+}
+
+.tech-section:last-child {
+  margin-bottom: 0;
+}
+
+.tech-section-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0 0 0.75rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+  letter-spacing: 0.5px;
+}
+
+.model-badge {
+  display: inline-block;
+  padding: 0.4rem 0.85rem;
+  background: rgba(102, 126, 234, 0.15);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 8px;
+  font-size: 0.75rem;
+  color: rgba(102, 126, 234, 1);
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.3px;
+}
+
+.tech-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.tech-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+.tech-label {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.tech-value {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+.tech-value.confidence.high {
+  color: rgba(102, 234, 126, 0.95);
+}
+
+.tech-value.confidence.medium {
+  color: rgba(234, 202, 102, 0.95);
+}
+
+.tech-value.confidence.low {
+  color: rgba(234, 102, 102, 0.95);
+}
+
+.vector-sample {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+.vector-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.vector-val {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  background: rgba(102, 126, 234, 0.2);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.9);
+  font-family: 'Courier New', monospace;
+}
+
+.retrieval-docs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.doc-card {
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.doc-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(102, 126, 234, 0.4);
+}
+
+.doc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.doc-id {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: 'Courier New', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.doc-score {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+.doc-score.high {
+  background: rgba(102, 234, 126, 0.2);
+  color: rgba(102, 234, 126, 1);
+  border: 1px solid rgba(102, 234, 126, 0.4);
+}
+
+.doc-score.medium {
+  background: rgba(234, 202, 102, 0.2);
+  color: rgba(234, 202, 102, 1);
+  border: 1px solid rgba(234, 202, 102, 0.4);
+}
+
+.doc-score.low {
+  background: rgba(234, 102, 102, 0.2);
+  color: rgba(234, 102, 102, 1);
+  border: 1px solid rgba(234, 102, 102, 0.4);
+}
+
+.doc-snippet {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+}
+
+/* Scrollbar for technical panel */
+.technical-details-panel::-webkit-scrollbar {
+  width: 14px;
+}
+
+.technical-details-panel::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 7px;
+  margin: 10px 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.technical-details-panel::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%);
+  border-radius: 7px;
+  border: 3px solid rgba(10, 10, 15, 0.97);
+  box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+}
+
+.technical-details-panel::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 1) 0%, rgba(118, 75, 162, 1) 100%);
+  box-shadow: 0 0 15px rgba(102, 126, 234, 0.8);
+}
+
+.technical-details-panel::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(135deg, rgba(118, 75, 162, 1) 0%, rgba(102, 126, 234, 1) 100%);
+}

@@ -6,15 +6,26 @@ interface NetworkMetadata {
     dimension: number;
     norm: number;
     active_dimensions: number;
+    sample_values: number[];
+    time_ms: number;
+    model: string;
+    sparsity: number;
   };
   retrieval_stats: Array<{
     score: number;
     doc_id: string;
+    snippet: string;
   }>;
   generation_stats: {
     tokens: number;
     time_ms: number;
+    model: string;
+    prompt_tokens: number;
+    completion_tokens: number;
   };
+  confidence_score: number;
+  total_time_ms: number;
+  retrieval_time_ms: number;
 }
 
 interface Message {
@@ -32,9 +43,10 @@ export interface ChatBoxRef {
 interface ChatBoxProps {
   onMetadataUpdate?: (metadata: NetworkMetadata) => void;
   onStageUpdate?: (stage: 'embedding' | 'retrieval' | 'generation') => void;
+  geekMode?: boolean;
 }
 
-const ChatBox = forwardRef<ChatBoxRef, ChatBoxProps>(({ onMetadataUpdate, onStageUpdate }, ref) => {
+const ChatBox = forwardRef<ChatBoxRef, ChatBoxProps>(({ onMetadataUpdate, onStageUpdate, geekMode = false }, ref) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);

@@ -6,21 +6,33 @@ interface NetworkMetadata {
     dimension: number;
     norm: number;
     active_dimensions: number;
+    sample_values: number[];
+    time_ms: number;
+    model: string;
+    sparsity: number;
   };
   retrieval_stats: Array<{
     score: number;
     doc_id: string;
+    snippet: string;
   }>;
   generation_stats: {
     tokens: number;
     time_ms: number;
+    model: string;
+    prompt_tokens: number;
+    completion_tokens: number;
   };
+  confidence_score: number;
+  total_time_ms: number;
+  retrieval_time_ms: number;
 }
 
 interface NeuralNetworkVizProps {
   isProcessing: boolean;
   metadata?: NetworkMetadata;
   processingStage?: 'embedding' | 'retrieval' | 'generation' | 'idle';
+  geekMode?: boolean;
 }
 
 interface Node {
@@ -38,7 +50,7 @@ interface Connection {
   weight: number;
 }
 
-export default function NeuralNetworkViz({ isProcessing, metadata, processingStage = 'idle' }: NeuralNetworkVizProps) {
+export default function NeuralNetworkViz({ isProcessing, metadata, processingStage = 'idle', geekMode = false }: NeuralNetworkVizProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameRef = useRef<number | undefined>(undefined);
   const nodesRef = useRef<Node[]>([]);
@@ -284,6 +296,124 @@ export default function NeuralNetworkViz({ isProcessing, metadata, processingSta
           <div className="stat-item">
             <span className="stat-label">Time</span>
             <span className="stat-value">{metadata.generation_stats.time_ms}ms</span>
+          </div>
+        </div>
+      )}
+
+      {geekMode && metadata && !isProcessing && (
+        <div className="technical-details-panel">
+          <div className="tech-section">
+            <h3 className="tech-section-title">🧠 Embedding Layer [UPDATED v2.0]</h3>
+            {metadata.embedding_stats.model && (
+              <div className="model-badge">
+                Model: {metadata.embedding_stats.model}
+              </div>
+            )}
+            <div className="tech-grid">
+              <div className="tech-item">
+                <span className="tech-label">Dimension:</span>
+                <span className="tech-value">{metadata.embedding_stats.dimension}</span>
+              </div>
+              <div className="tech-item">
+                <span className="tech-label">Norm:</span>
+                <span className="tech-value">{metadata.embedding_stats.norm}</span>
+              </div>
+              <div className="tech-item">
+                <span className="tech-label">Active Dims:</span>
+                <span className="tech-value">{metadata.embedding_stats.active_dimensions}</span>
+              </div>
+              {metadata.embedding_stats.sparsity !== undefined && (
+                <div className="tech-item">
+                  <span className="tech-label">Sparsity:</span>
+                  <span className="tech-value">{metadata.embedding_stats.sparsity.toFixed(2)}%</span>
+                </div>
+              )}
+              {metadata.embedding_stats.time_ms !== undefined && (
+                <div className="tech-item">
+                  <span className="tech-label">Time:</span>
+                  <span className="tech-value">{metadata.embedding_stats.time_ms}ms</span>
+                </div>
+              )}
+            </div>
+            {metadata.embedding_stats.sample_values && metadata.embedding_stats.sample_values.length > 0 && (
+              <div className="vector-sample">
+                <span className="tech-label">Sample Vector (first 10):</span>
+                <div className="vector-values">
+                  {metadata.embedding_stats.sample_values.map((val, i) => (
+                    <span key={i} className="vector-val">{val.toFixed(4)}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="tech-section">
+            <h3 className="tech-section-title">🔍 Retrieval Layer</h3>
+            {metadata.retrieval_time_ms !== undefined && (
+              <div className="model-badge">
+                Pinecone Query: {metadata.retrieval_time_ms}ms
+              </div>
+            )}
+            <div className="retrieval-docs">
+              {metadata.retrieval_stats.map((doc, i) => (
+                <div key={i} className="doc-card">
+                  <div className="doc-header">
+                    <span className="doc-id">{doc.doc_id}</span>
+                    <span className={`doc-score ${doc.score > 0.8 ? 'high' : doc.score > 0.6 ? 'medium' : 'low'}`}>
+                      {(doc.score * 100).toFixed(1)}% match
+                    </span>
+                  </div>
+                  {doc.snippet && <p className="doc-snippet">{doc.snippet}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="tech-section">
+            <h3 className="tech-section-title">✨ Generation Layer</h3>
+            {metadata.generation_stats.model && (
+              <div className="model-badge">
+                Model: {metadata.generation_stats.model}
+              </div>
+            )}
+            <div className="tech-grid">
+              <div className="tech-item">
+                <span className="tech-label">Total Tokens:</span>
+                <span className="tech-value">{metadata.generation_stats.tokens}</span>
+              </div>
+              {metadata.generation_stats.prompt_tokens !== undefined && (
+                <div className="tech-item">
+                  <span className="tech-label">Prompt Tokens:</span>
+                  <span className="tech-value">{metadata.generation_stats.prompt_tokens}</span>
+                </div>
+              )}
+              {metadata.generation_stats.completion_tokens !== undefined && (
+                <div className="tech-item">
+                  <span className="tech-label">Completion Tokens:</span>
+                  <span className="tech-value">{metadata.generation_stats.completion_tokens}</span>
+                </div>
+              )}
+              <div className="tech-item">
+                <span className="tech-label">Latency:</span>
+                <span className="tech-value">{metadata.generation_stats.time_ms}ms</span>
+              </div>
+              {metadata.confidence_score !== undefined && (
+                <div className="tech-item">
+                  <span className="tech-label">Confidence:</span>
+                  <span className={`tech-value confidence ${metadata.confidence_score > 0.8 ? 'high' : metadata.confidence_score > 0.6 ? 'medium' : 'low'}`}>
+                    {(metadata.confidence_score * 100).toFixed(1)}%
+                  </span>
+                </div>
+              )}
+              {metadata.total_time_ms !== undefined && (
+                <div className="tech-item">
+                  <span className="tech-label">Total Pipeline:</span>
+                  <span className="tech-value">
+                    {metadata.total_time_ms}ms
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
