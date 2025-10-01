@@ -43,6 +43,7 @@ function App() {
   }
 
   const handleStageUpdate = (stage: 'embedding' | 'retrieval' | 'generation') => {
+    setIsProcessing(true)
     setProcessingStage(stage)
   }
 
