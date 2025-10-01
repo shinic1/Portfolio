@@ -67,8 +67,7 @@ function App() {
           onClick={() => setGeekMode(!geekMode)}
           title={geekMode ? "Disable Geek Mode" : "Enable Geek Mode"}
         >
-          <span className="toggle-icon">🤓</span>
-          <span className="toggle-text">Geek Mode</span>
+          <span className="toggle-icon">⚡</span>
         </button>
         <NeuralNetworkViz
           isProcessing={isProcessing}
