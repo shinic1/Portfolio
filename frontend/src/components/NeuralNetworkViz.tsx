@@ -319,7 +319,8 @@ export default function NeuralNetworkViz({ isProcessing, metadata, processingSta
 
       {geekMode && metadata && !isProcessing && (
         <div className="technical-details-panel">
-          <div className="tech-section">
+          <div className="technical-details-content">
+            <div className="tech-section">
             <h3 className="tech-section-title">🧠 Embedding Layer [UPDATED v2.0]</h3>
             {metadata.embedding_stats.model && (
               <div className="model-badge">
@@ -431,6 +432,7 @@ export default function NeuralNetworkViz({ isProcessing, metadata, processingSta
                 </div>
               )}
             </div>
+          </div>
           </div>
         </div>
       )}

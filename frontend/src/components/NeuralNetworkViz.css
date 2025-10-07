@@ -60,10 +60,8 @@
   width: 85%;
   max-width: 750px;
   max-height: 70vh;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 1.5rem;
-  padding-right: 1rem;
+  display: flex;
+  flex-direction: column;
   background: rgba(10, 10, 15, 0.98);
   backdrop-filter: blur(30px) saturate(180%);
   -webkit-backdrop-filter: blur(30px) saturate(180%);
@@ -72,11 +70,19 @@
   box-shadow: 0 12px 48px 0 rgba(31, 38, 135, 0.6),
               inset 0 0 30px rgba(102, 126, 234, 0.2);
   animation: fadeInCenter 0.3s ease-out;
+  pointer-events: auto;
+  z-index: 100;
+}
+
+.technical-details-content {
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 1.5rem;
+  padding-right: 1rem;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
   touch-action: pan-y;
-  pointer-events: auto;
 }
 
 .technical-details-panel * {
@@ -265,17 +271,17 @@
 }
 
 /* Scrollbar for technical panel */
-.technical-details-panel::-webkit-scrollbar {
+.technical-details-content::-webkit-scrollbar {
   width: 16px;
 }
 
-.technical-details-panel::-webkit-scrollbar-track {
+.technical-details-content::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.5);
   border-radius: 8px;
   margin: 8px 2px;
 }
 
-.technical-details-panel::-webkit-scrollbar-thumb {
+.technical-details-content::-webkit-scrollbar-thumb {
   background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
   border-radius: 8px;
   border: 2px solid transparent;
@@ -284,19 +290,19 @@
   min-height: 40px;
 }
 
-.technical-details-panel::-webkit-scrollbar-thumb:hover {
+.technical-details-content::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg, rgba(102, 126, 234, 1) 0%, rgba(118, 75, 162, 1) 100%);
   background-clip: padding-box;
   box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5), 0 0 12px rgba(102, 126, 234, 0.6);
 }
 
-.technical-details-panel::-webkit-scrollbar-thumb:active {
+.technical-details-content::-webkit-scrollbar-thumb:active {
   background: linear-gradient(135deg, rgba(118, 75, 162, 1) 0%, rgba(102, 126, 234, 1) 100%);
   background-clip: padding-box;
 }
 
 /* Firefox scrollbar */
-.technical-details-panel {
+.technical-details-content {
   scrollbar-width: auto;
   scrollbar-color: rgba(102, 126, 234, 0.9) rgba(0, 0, 0, 0.5);
 }
