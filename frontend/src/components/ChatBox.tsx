@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import './ChatBox.css';
+import MessagePanel, { type Panel } from './MessagePanel';
 
 interface NetworkMetadata {
   embedding_stats: {
@@ -32,6 +33,7 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   metadata?: NetworkMetadata;
+  panels?: Panel[];
 }
 
 export interface ChatBoxRef {
@@ -95,7 +97,8 @@ const ChatBox = forwardRef<ChatBoxRef, ChatBoxProps>(({ onMetadataUpdate, onStag
       const assistantMessage: Message = {
         role: 'assistant',
         content: data.reply,
-        metadata: data.metadata
+        metadata: data.metadata,
+        panels: data.panels || []
       };
       setMessages(prev => [...prev, assistantMessage]);
 
@@ -143,8 +146,17 @@ const ChatBox = forwardRef<ChatBoxRef, ChatBoxProps>(({ onMetadataUpdate, onStag
             <div className="message-avatar">
               {message.role === 'user' ? '👤' : '🤖'}
             </div>
-            <div className="message-content">
-              {message.content}
+            <div className="message-wrapper">
+              <div className="message-content">
+                {message.content}
+              </div>
+              {message.panels && message.panels.length > 0 && (
+                <div className="message-panels">
+                  {message.panels.map((panel, panelIndex) => (
+                    <MessagePanel key={panelIndex} panel={panel} />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         ))}

@@ -46,5 +46,13 @@
   {
     "id": "extracurricular_2",
     "content": "Outside of academics, Nico enjoys experimenting with new frameworks, contributing to open-source projects, and exploring futuristic UI/UX design concepts."
+  },
+  {
+    "id": "contact_info",
+    "content": "Contact Information: You can connect with Nico on LinkedIn at https://www.linkedin.com/in/nico-bourel, view his projects on GitHub at https://github.com/nicobourel, or email him at nico.bourel@example.com. His portfolio website showcases his latest work."
+  },
+  {
+    "id": "social_links",
+    "content": "Nico's professional profiles: LinkedIn profile for professional networking and experience details, GitHub profile for code repositories and open-source contributions, and email for direct contact regarding opportunities or collaborations."
   }
 ]
