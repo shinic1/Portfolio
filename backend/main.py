@@ -175,7 +175,7 @@ def detect_intent_and_generate_panels(query: str) -> tuple[list[Panel], bool]:
             type='linkedin',
             title='Connect with Nico on LinkedIn',
             subtitle='View professional experience and network',
-            url='https://www.linkedin.com/in/nico-bourel'
+            url='https://www.linkedin.com/in/nico-bourel-09237a216/'
         ))
         has_contact_intent = True
 
