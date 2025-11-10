@@ -1,58 +1,42 @@
 [
   {
     "id": "experience_1",
-    "content": "Work Experience: Nico worked as a teaching assistant for an introductory computer science course, where he helped students understand programming concepts and debug their assignments. This was professional teaching experience in computer science education."
+    "content": "Work Experience: Nico currently works as a part time AI Engineerintern for AnSer in Green Bay, his responsibilities include integrating AI models in production applications, building and maintaining AI pipelines and researching new AI technologies."
   },
   {
     "id": "experience_2",
-    "content": "Work Experience and Internship: Nico completed an internship at a local tech startup, where he contributed to building a web-based dashboard for monitoring IoT devices. He worked on both the backend APIs and the frontend interface. This was hands-on professional software development experience."
+    "content": "Work Experience: Nico previously worked as an ATS Technician at UW–Green Bay, supporting classroom technology, performing weekly maintenance checks, and managing tech equipment rentals."
   },
   {
-    "id": "project_4",
-    "content": "Nico developed a BMI calculator application with randomized styling using CSS variables and React. The app lets users input height and weight, supports both metric and imperial units, and displays calculated BMI values with health categories."
+    "id": "experience_3",
+    "content": "Work Experience: Nico previously worked as an ATS Technician at UW–Green Bay, supporting classroom technology, performing weekly maintenance checks, and managing tech equipment rentals."
   },
   {
-    "id": "project_5",
-    "content": "Nico created a Dungeons & Dragons companion app in Java/Kotlin. The app assists with character creation, monster stats, and includes AI-powered tools for dungeon masters."
+    "id": "experience_4",
+    "content": "Apprenticeship Experience: At CSS GmbH in Nuremberg, Nico worked as an IT Specialist for Systems and Customer Care. He maintained databases, configured servers, and provided troubleshooting support both remotely and onsite."
   },
   {
-    "id": "project_6",
-    "content": "Nico designed and implemented a 2-bit adder using assembly language and breadboard hardware. The project combined theoretical computer architecture with practical circuit design."
+    "id": "leadership_1",
+    "content": "Leadership Experience: As Chairman of Fundraising for Kappa Sigma (Upsilon-Eta chapter), Nico plans and leads multiple fundraising and philanthropy events, collaborating with other fraternities and sororities."
   },
   {
-    "id": "achievement_1",
-    "content": "Nico maintained a GPA of 3.31 while balancing coursework, side projects, and extracurricular activities."
+    "id": "education_1",
+    "content": "Education: Nico is pursuing a BSc in Computer Science at the University of Wisconsin–Green Bay, expected graduation May 2026."
   },
   {
-    "id": "achievement_2",
-    "content": "Nico presented a project on distributed systems at a student research showcase, demonstrating the use of RabbitMQ for scalable data pipelines."
+    "id": "skills_1",
+    "content": "Technical Skills: Proficient in Java, Python, HTML, CSS, JavaScript, React, MySQL, and R-Studio."
   },
   {
-    "id": "soft_skills_1",
-    "content": "Nico has strong communication and collaboration skills, gained through group projects and working as a teaching assistant."
+    "id": "skills_2",
+    "content": "Language Skills: Native in German and fluent in English"
   },
   {
-    "id": "soft_skills_2",
-    "content": "Nico is highly adaptable and enjoys learning new technologies quickly, applying them to real-world projects."
-  },
-  {
-    "id": "career_goal_1",
-    "content": "Nico aspires to work as an AI/ML engineer, developing intelligent systems and applications that integrate machine learning with scalable web technologies."
-  },
-  {
-    "id": "extracurricular_1",
-    "content": "Nico is an active member of the computer science club at UW-Green Bay, where he collaborates on hackathons and attends tech talks."
-  },
-  {
-    "id": "extracurricular_2",
-    "content": "Outside of academics, Nico enjoys experimenting with new frameworks, contributing to open-source projects, and exploring futuristic UI/UX design concepts."
+    "id": "interests_1",
+    "content": "Interests: Passionate about mathematics, engineering, computer science, golf, and winter sports."
   },
   {
     "id": "contact_info",
-    "content": "Contact Information: You can connect with Nico on LinkedIn at https://www.linkedin.com/in/nico-bourel-09237a216/, view his projects on GitHub at https://github.com/nicobourel, or email him at nico.bourel@example.com. His portfolio website showcases his latest work."
-  },
-  {
-    "id": "social_links",
-    "content": "Nico's professional profiles: LinkedIn profile for professional networking and experience details, GitHub profile for code repositories and open-source contributions, and email for direct contact regarding opportunities or collaborations."
+    "content": "Contact Information: Email Nico at nico.bourel@swedev.online, visit his portfolio at www.swedev.online, or call +1 (313) 722-0915."
   }
 ]
