@@ -118,8 +118,13 @@
               inset 0 0 20px rgba(255, 255, 255, 0.05);
 }
 
-.message-content {
+.message-wrapper {
   max-width: 75%;
+  display: flex;
+  flex-direction: column;
+}
+
+.message-content {
   padding: 1rem 1.25rem;
   border-radius: 18px;
   line-height: 1.6;
@@ -127,6 +132,13 @@
   font-size: 0.95rem;
   user-select: text;
   -webkit-user-select: text;
+}
+
+.message-panels {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
 }
 
 .message.user .message-content {

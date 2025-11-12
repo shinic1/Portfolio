@@ -41,6 +41,14 @@ pinecone_index = None
 class ChatRequest(BaseModel):
     question: str
 
+class Panel(BaseModel):
+    type: str  # 'linkedin', 'github', 'email', 'project', 'resume', 'link'
+    title: str
+    subtitle: str | None = None
+    url: str | None = None
+    icon: str | None = None
+    action: str | None = None
+
 class EmbeddingStats(BaseModel):
     dimension: int
     norm: float
@@ -73,6 +81,7 @@ class ChatMetadata(BaseModel):
 class ChatResponse(BaseModel):
     reply: str
     metadata: ChatMetadata
+    panels: list[Panel] = []
 
 @app.on_event("startup")
 async def load_index():
@@ -153,7 +162,46 @@ def retrieve_relevant_docs(query_embedding: list[float], k: int = 3) -> tuple[li
 
     return relevant_docs, retrieval_matches, retrieval_time_ms
 
-def generate_response(query: str, context_docs: list[str]) -> tuple[str, GenerationStats]:
+def detect_intent_and_generate_panels(query: str) -> tuple[list[Panel], bool]:
+    """Detect user intent and generate appropriate panels based on query.
+    Returns (panels, has_contact_intent) where has_contact_intent indicates if this is a contact-related query."""
+    panels = []
+    query_lower = query.lower()
+    has_contact_intent = False
+
+    # LinkedIn intent
+    if any(keyword in query_lower for keyword in ['linkedin', 'connect', 'network', 'professional profile']):
+        panels.append(Panel(
+            type='linkedin',
+            title='Connect with Nico on LinkedIn',
+            subtitle='View professional experience and network',
+            url='https://www.linkedin.com/in/nico-bourel-09237a216/'
+        ))
+        has_contact_intent = True
+
+    # GitHub intent
+    if any(keyword in query_lower for keyword in ['github', 'code', 'repository', 'repos', 'projects', 'source']):
+        panels.append(Panel(
+            type='github',
+            title="Nico's GitHub Profile",
+            subtitle='Explore code repositories and contributions',
+            url='https://github.com/nicobourel'
+        ))
+        has_contact_intent = True
+
+    # Email/Contact intent
+    if any(keyword in query_lower for keyword in ['email', 'contact', 'reach', 'message', 'get in touch']):
+        panels.append(Panel(
+            type='email',
+            title='Email Nico',
+            subtitle='nico.bourel@example.com',
+            url='mailto:nico.bourel@example.com'
+        ))
+        has_contact_intent = True
+
+    return panels, has_contact_intent
+
+def generate_response(query: str, context_docs: list[str], has_contact_intent: bool = False) -> tuple[str, GenerationStats]:
     """Generate response using GPT-4o-mini with retrieved context and return stats."""
     import time
     start_time = time.time()
@@ -169,6 +217,11 @@ IMPORTANT: If the user's message is very short (like "yes", "ok", "sure", "thank
 - "Great! Is there anything specific you'd like to know about Nico's projects?"
 - "Awesome! Feel free to ask me about Nico's skills or experience."
 
+CONTACT QUESTIONS: If the user asks about LinkedIn, GitHub, email, or how to contact Nico, respond warmly and mention that you've provided a clickable link below. Examples:
+- "Sure! I've provided Nico's LinkedIn profile below - just click to connect with him!"
+- "You can find Nico on GitHub! I've included a link to his profile below."
+- "I've shared Nico's contact information below. Feel free to reach out!"
+
 If the answer to a real question is not in the context, respond with a friendly refusal that redirects to what you DO know about Nico. Choose from variations like:
 - "I can only talk about Nico and his work — want to hear about his AI internship?"
 - "I'm not trained on that, but I can show you Nico's projects instead."
@@ -176,10 +229,15 @@ If the answer to a real question is not in the context, respond with a friendly 
 
 Keep the recruiter engaged. Be friendly, concise, and helpful. When discussing projects, highlight the technologies and skills involved."""
 
+    # Add hint if this is a contact question
+    contact_hint = ""
+    if has_contact_intent:
+        contact_hint = "\n\nNOTE: This is a contact/social media question. You MUST respond positively and mention the clickable link provided below. DO NOT say you can't provide this information."
+
     user_prompt = f"""Context:
 {context}
 
-Question: {query}
+Question: {query}{contact_hint}
 
 Answer based only on the context above:"""
 
@@ -254,8 +312,15 @@ async def chat(request: ChatRequest):
                 )
             )
 
-        # Step 3: Generate response
-        reply, generation_stats = generate_response(request.question, relevant_docs)
+        # Step 3: Detect intent and generate panels first
+        panels, has_contact_intent = detect_intent_and_generate_panels(request.question)
+        print(f"DEBUG: Query: {request.question}")
+        print(f"DEBUG: Detected {len(panels)} panels, has_contact_intent={has_contact_intent}")
+        for panel in panels:
+            print(f"DEBUG: Panel type={panel.type}, title={panel.title}")
+
+        # Step 4: Generate response with context about whether we're showing contact panels
+        reply, generation_stats = generate_response(request.question, relevant_docs, has_contact_intent)
 
         # Calculate confidence score (average of retrieval scores)
         confidence_score = sum(match.score for match in retrieval_matches) / len(retrieval_matches) if retrieval_matches else 0.0
@@ -272,7 +337,8 @@ async def chat(request: ChatRequest):
                 confidence_score=round(confidence_score, 4),
                 total_time_ms=total_time,
                 retrieval_time_ms=retrieval_time_ms
-            )
+            ),
+            panels=panels
         )
 
     except Exception as e:
