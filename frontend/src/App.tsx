@@ -41,6 +41,11 @@ function App() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [processingStage, setProcessingStage] = useState<'embedding' | 'retrieval' | 'generation' | 'idle'>('idle')
   const [geekMode, setGeekMode] = useState(false)
+  const [suggestions, setSuggestions] = useState<string[]>([
+    "What projects has Nico done?",
+    "Tell me about Nico's skills.",
+    "Where is Nico studying?"
+  ])
 
   const handleQuestionSelect = (question: string) => {
     chatBoxRef.current?.sendMessage(question)
@@ -57,6 +62,12 @@ function App() {
   const handleStageUpdate = (stage: 'embedding' | 'retrieval' | 'generation') => {
     setIsProcessing(true)
     setProcessingStage(stage)
+  }
+
+  const handleSuggestionsUpdate = (newSuggestions: string[]) => {
+    if (newSuggestions && newSuggestions.length > 0) {
+      setSuggestions(newSuggestions)
+    }
   }
 
   return (
@@ -85,9 +96,10 @@ function App() {
           ref={chatBoxRef}
           onMetadataUpdate={handleMetadataUpdate}
           onStageUpdate={handleStageUpdate}
+          onSuggestionsUpdate={handleSuggestionsUpdate}
           geekMode={geekMode}
         />
-        <SuggestedQuestions onQuestionClick={handleQuestionSelect} />
+        <SuggestedQuestions onQuestionClick={handleQuestionSelect} questions={suggestions} />
       </div>
     </div>
   )
