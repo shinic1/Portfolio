@@ -42,12 +42,13 @@ class ChatRequest(BaseModel):
     question: str
 
 class Panel(BaseModel):
-    type: str  # 'linkedin', 'github', 'email', 'project', 'resume', 'link'
+    type: str  # 'linkedin', 'github', 'email', 'project', 'resume', 'link', 'suggestion'
     title: str
     subtitle: str | None = None
     url: str | None = None
     icon: str | None = None
     action: str | None = None
+    is_question: bool = False  # True for clickable question suggestions
 
 class EmbeddingStats(BaseModel):
     dimension: int
@@ -201,6 +202,69 @@ def detect_intent_and_generate_panels(query: str) -> tuple[list[Panel], bool]:
 
     return panels, has_contact_intent
 
+def extract_topics_from_docs(retrieval_matches: list) -> list[str]:
+    """Extract main topics from retrieved document IDs (e.g., 'experience', 'skills', 'education')."""
+    topics = set()
+    for match in retrieval_matches:
+        # Parse doc_id like "experience_1", "skills_2", etc.
+        if hasattr(match, 'doc_id') and '_' in match.doc_id:
+            topic = match.doc_id.split('_')[0]
+            topics.add(topic)
+    return list(topics)
+
+def generate_follow_up_suggestions(query: str, reply: str, retrieval_matches: list) -> list[Panel]:
+    """Generate contextual follow-up question suggestions using GPT-4o-mini.
+    Analyzes the conversation context and retrieved topics to suggest relevant next questions."""
+
+    # Extract topics from retrieved documents
+    topics = extract_topics_from_docs(retrieval_matches)
+    topics_str = ', '.join(topics) if topics else 'general information about Nico'
+
+    # Use GPT to generate contextual follow-ups
+    prompt = f"""Based on this portfolio chatbot conversation:
+
+User asked: "{query}"
+Assistant replied: "{reply[:200]}..."
+Context retrieved about: {topics_str}
+
+Generate exactly 3 natural follow-up questions that a recruiter or visitor might ask next about Nico Bourel.
+- Questions should be conversational and specific
+- Focus on exploring related topics (experience, skills, education, projects, interests)
+- Avoid repeating information just discussed
+- Each question should be on its own line
+- Do not number the questions
+
+Return ONLY the 3 questions, nothing else."""
+
+    try:
+        response = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.8,
+            max_tokens=150
+        )
+
+        questions_text = response.choices[0].message.content.strip()
+        questions = [q.strip().strip('-•123456789.') for q in questions_text.split('\n') if q.strip()]
+
+        # Convert to Panel objects (limit to 3)
+        panels = []
+        for question in questions[:3]:
+            if question:  # Only add non-empty questions
+                panels.append(Panel(
+                    type='suggestion',
+                    title=question,
+                    action='Ask this',
+                    is_question=True
+                ))
+
+        return panels
+
+    except Exception as e:
+        print(f"ERROR generating follow-up suggestions: {e}")
+        # Return empty list on error - don't break the chat flow
+        return []
+
 def generate_response(query: str, context_docs: list[str], has_contact_intent: bool = False) -> tuple[str, GenerationStats]:
     """Generate response using GPT-4o-mini with retrieved context and return stats."""
     import time
@@ -322,6 +386,13 @@ async def chat(request: ChatRequest):
         # Step 4: Generate response with context about whether we're showing contact panels
         reply, generation_stats = generate_response(request.question, relevant_docs, has_contact_intent)
 
+        # Step 5: Generate contextual follow-up suggestions
+        suggestion_panels = generate_follow_up_suggestions(request.question, reply, retrieval_matches)
+        print(f"DEBUG: Generated {len(suggestion_panels)} follow-up suggestions")
+
+        # Combine contact panels and suggestion panels
+        all_panels = panels + suggestion_panels
+
         # Calculate confidence score (average of retrieval scores)
         confidence_score = sum(match.score for match in retrieval_matches) / len(retrieval_matches) if retrieval_matches else 0.0
 
@@ -338,7 +409,7 @@ async def chat(request: ChatRequest):
                 total_time_ms=total_time,
                 retrieval_time_ms=retrieval_time_ms
             ),
-            panels=panels
+            panels=all_panels
         )
 
     except Exception as e:

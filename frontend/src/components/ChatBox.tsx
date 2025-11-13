@@ -153,7 +153,7 @@ const ChatBox = forwardRef<ChatBoxRef, ChatBoxProps>(({ onMetadataUpdate, onStag
               {message.panels && message.panels.length > 0 && (
                 <div className="message-panels">
                   {message.panels.map((panel, panelIndex) => (
-                    <MessagePanel key={panelIndex} panel={panel} />
+                    <MessagePanel key={panelIndex} panel={panel} onQuestionClick={sendMessage} />
                   ))}
                 </div>
               )}

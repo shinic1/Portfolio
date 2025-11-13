@@ -1,6 +1,6 @@
 import './MessagePanel.css';
 
-export type PanelType = 'linkedin' | 'github' | 'email' | 'project' | 'resume' | 'link';
+export type PanelType = 'linkedin' | 'github' | 'email' | 'project' | 'resume' | 'link' | 'suggestion';
 
 export interface Panel {
   type: PanelType;
@@ -9,15 +9,22 @@ export interface Panel {
   url?: string;
   icon?: string;
   action?: string; // Text for action button, e.g., "View Profile", "Open Project"
+  is_question?: boolean; // True for clickable question suggestions
 }
 
 interface MessagePanelProps {
   panel: Panel;
+  onQuestionClick?: (question: string) => void; // Callback for clicking question suggestions
 }
 
-const MessagePanel = ({ panel }: MessagePanelProps) => {
+const MessagePanel = ({ panel, onQuestionClick }: MessagePanelProps) => {
   const handleClick = () => {
-    if (panel.url) {
+    // For question suggestions, call the question click handler
+    if (panel.is_question && onQuestionClick) {
+      onQuestionClick(panel.title);
+    }
+    // For link panels, open the URL
+    else if (panel.url) {
       window.open(panel.url, '_blank', 'noopener,noreferrer');
     }
   };
@@ -37,6 +44,8 @@ const MessagePanel = ({ panel }: MessagePanelProps) => {
         return '🚀';
       case 'resume':
         return '📄';
+      case 'suggestion':
+        return '💬';
       default:
         return '🔗';
     }
@@ -56,6 +65,8 @@ const MessagePanel = ({ panel }: MessagePanelProps) => {
         return 'Open Project';
       case 'resume':
         return 'Download';
+      case 'suggestion':
+        return 'Ask this';
       default:
         return 'Open Link';
     }
