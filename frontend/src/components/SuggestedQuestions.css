@@ -10,11 +10,8 @@
   max-width: none;
   z-index: 5;
   pointer-events: none;
-  padding: 1rem;
-  background: rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  margin: 0 1rem 1rem 0;
+  padding: 0;
+  background: transparent;
 }
 
 .suggested-label {
