@@ -4,6 +4,12 @@ import SuggestedQuestions from './components/SuggestedQuestions'
 import NeuralNetworkViz from './components/NeuralNetworkViz'
 import './App.css'
 
+interface CategoryState {
+  category: string;
+  currentIndex: number;
+  questions: string[];
+}
+
 interface NetworkMetadata {
   embedding_stats: {
     dimension: number;
@@ -41,16 +47,55 @@ function App() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [processingStage, setProcessingStage] = useState<'embedding' | 'retrieval' | 'generation' | 'idle'>('idle')
   const [geekMode, setGeekMode] = useState(false)
-  const [suggestions, setSuggestions] = useState<string[]>([
-    "What projects has Nico done?",
-    "Tell me about Nico's skills.",
-    "Where is Nico studying?"
+  const [categoryStates, setCategoryStates] = useState<CategoryState[]>([
+    {
+      category: 'experience',
+      currentIndex: 0,
+      questions: [
+        "Tell me about his work",
+        "What's his current role?",
+        "What has he worked on?",
+        "Tell me about his internships",
+        "What technologies does he use?"
+      ]
+    },
+    {
+      category: 'skills',
+      currentIndex: 0,
+      questions: [
+        "What are his skills?",
+        "Does he know React?",
+        "What languages does he know?",
+        "What's his strongest skill?",
+        "What frameworks can he use?"
+      ]
+    },
+    {
+      category: 'education',
+      currentIndex: 0,
+      questions: [
+        "Where does he study?",
+        "What's he studying?",
+        "When does he graduate?",
+        "What's his major?",
+        "Tell me about his education"
+      ]
+    }
   ])
 
-  const handleQuestionSelect = (question: string) => {
+  const handleQuestionSelect = (question: string, categoryIndex: number) => {
     chatBoxRef.current?.sendMessage(question)
     setIsProcessing(true)
     setProcessingStage('embedding')
+
+    // Update only the clicked category's index
+    setCategoryStates(prev =>
+      prev.map((cat, idx) =>
+        idx === categoryIndex
+          ? { ...cat, currentIndex: (cat.currentIndex + 1) % cat.questions.length }
+          : cat  // Other categories stay unchanged
+      )
+    )
   }
 
   const handleMetadataUpdate = (newMetadata: NetworkMetadata) => {
@@ -62,12 +107,6 @@ function App() {
   const handleStageUpdate = (stage: 'embedding' | 'retrieval' | 'generation') => {
     setIsProcessing(true)
     setProcessingStage(stage)
-  }
-
-  const handleSuggestionsUpdate = (newSuggestions: string[]) => {
-    if (newSuggestions && newSuggestions.length > 0) {
-      setSuggestions(newSuggestions)
-    }
   }
 
   return (
@@ -96,10 +135,9 @@ function App() {
           ref={chatBoxRef}
           onMetadataUpdate={handleMetadataUpdate}
           onStageUpdate={handleStageUpdate}
-          onSuggestionsUpdate={handleSuggestionsUpdate}
           geekMode={geekMode}
         />
-        <SuggestedQuestions onQuestionClick={handleQuestionSelect} questions={suggestions} />
+        <SuggestedQuestions onQuestionClick={handleQuestionSelect} categoryStates={categoryStates} />
       </div>
     </div>
   )

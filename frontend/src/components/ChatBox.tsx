@@ -45,11 +45,10 @@ export interface ChatBoxRef {
 interface ChatBoxProps {
   onMetadataUpdate?: (metadata: NetworkMetadata) => void;
   onStageUpdate?: (stage: 'embedding' | 'retrieval' | 'generation') => void;
-  onSuggestionsUpdate?: (suggestions: string[]) => void;
   geekMode?: boolean;
 }
 
-const ChatBox = forwardRef<ChatBoxRef, ChatBoxProps>(({ onMetadataUpdate, onStageUpdate, onSuggestionsUpdate }, ref) => {
+const ChatBox = forwardRef<ChatBoxRef, ChatBoxProps>(({ onMetadataUpdate, onStageUpdate }, ref) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -107,15 +106,6 @@ const ChatBox = forwardRef<ChatBoxRef, ChatBoxProps>(({ onMetadataUpdate, onStag
       if (data.metadata) {
         setLatestMetadata(data.metadata);
         onMetadataUpdate?.(data.metadata);
-      }
-
-      // Extract and update suggestions
-      if (data.panels && onSuggestionsUpdate) {
-        const suggestionPanels = data.panels.filter((p: Panel) => p.type === 'suggestion' && p.is_question);
-        if (suggestionPanels.length > 0) {
-          const newSuggestions = suggestionPanels.map((p: Panel) => p.title);
-          onSuggestionsUpdate(newSuggestions);
-        }
       }
     } catch (error) {
       console.error('Error sending message:', error);

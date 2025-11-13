@@ -1,32 +1,33 @@
 import './SuggestedQuestions.css';
 
-interface SuggestedQuestionsProps {
-  onQuestionClick: (question: string) => void;
-  questions?: string[]; // Optional dynamic questions
+interface CategoryState {
+  category: string;
+  currentIndex: number;
+  questions: string[];
 }
 
-export default function SuggestedQuestions({ onQuestionClick, questions }: SuggestedQuestionsProps) {
-  const defaultQuestions = [
-    "What projects has Nico done?",
-    "Tell me about Nico's skills.",
-    "Where is Nico studying?"
-  ];
+interface SuggestedQuestionsProps {
+  onQuestionClick: (question: string, categoryIndex: number) => void;
+  categoryStates: CategoryState[];
+}
 
-  // Use provided questions if available, otherwise use defaults
-  const displayQuestions = questions && questions.length > 0 ? questions : defaultQuestions;
-
+export default function SuggestedQuestions({ onQuestionClick, categoryStates }: SuggestedQuestionsProps) {
   return (
     <div className="suggested-questions">
       <div className="questions-grid">
-        {displayQuestions.map((question, index) => (
-          <button
-            key={index}
-            onClick={() => onQuestionClick(question)}
-            className="question-button"
-          >
-            {question}
-          </button>
-        ))}
+        {categoryStates.map((categoryState, index) => {
+          const currentQuestion = categoryState.questions[categoryState.currentIndex];
+          return (
+            <button
+              key={categoryState.category}
+              onClick={() => onQuestionClick(currentQuestion, index)}
+              className="question-button"
+              data-category={categoryState.category}
+            >
+              {currentQuestion}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
