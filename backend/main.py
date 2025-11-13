@@ -212,58 +212,107 @@ def extract_topics_from_docs(retrieval_matches: list) -> list[str]:
             topics.add(topic)
     return list(topics)
 
+# Rule-based suggestion mappings: short, concise follow-up questions
+TOPIC_SUGGESTIONS = {
+    'experience': [
+        "What's his current role?",
+        "Tell me about his internships",
+        "What has he worked on?",
+        "What technologies does he use?",
+        "Where has he worked before?"
+    ],
+    'skills': [
+        "What languages does he know?",
+        "Does he know React?",
+        "What's his strongest skill?",
+        "What frameworks can he use?",
+        "Is he good with databases?"
+    ],
+    'education': [
+        "When does he graduate?",
+        "What's he studying?",
+        "Where does he go to school?",
+        "What's his major?",
+        "Tell me about his education"
+    ],
+    'leadership': [
+        "Does he have leadership experience?",
+        "What organizations is he in?",
+        "Tell me about his involvement",
+        "What roles has he held?"
+    ],
+    'interests': [
+        "What are his hobbies?",
+        "What's he passionate about?",
+        "What does he do for fun?",
+        "Tell me about his interests"
+    ],
+    'contact': [
+        "How can I reach him?",
+        "Does he have LinkedIn?",
+        "What's his email?",
+        "Can I see his GitHub?"
+    ]
+}
+
+# Default suggestions for when no specific topics are retrieved
+DEFAULT_SUGGESTIONS = [
+    "What projects has he done?",
+    "Tell me about his skills",
+    "Where is he studying?"
+]
+
 def generate_follow_up_suggestions(query: str, reply: str, retrieval_matches: list) -> list[Panel]:
-    """Generate contextual follow-up question suggestions using GPT-4o-mini.
-    Analyzes the conversation context and retrieved topics to suggest relevant next questions."""
+    """Generate rule-based follow-up suggestions based on retrieved topics.
+    Returns short, concise questions relevant to the conversation context."""
 
     # Extract topics from retrieved documents
     topics = extract_topics_from_docs(retrieval_matches)
-    topics_str = ', '.join(topics) if topics else 'general information about Nico'
 
-    # Use GPT to generate contextual follow-ups
-    prompt = f"""Based on this portfolio chatbot conversation:
+    if not topics:
+        # No topics found, use defaults
+        questions = DEFAULT_SUGGESTIONS
+    else:
+        # Collect questions from all retrieved topics
+        available_questions = []
+        for topic in topics:
+            if topic in TOPIC_SUGGESTIONS:
+                available_questions.extend(TOPIC_SUGGESTIONS[topic])
 
-User asked: "{query}"
-Assistant replied: "{reply[:200]}..."
-Context retrieved about: {topics_str}
+        # Also add questions from related topics for variety
+        all_topic_keys = list(TOPIC_SUGGESTIONS.keys())
+        for topic_key in all_topic_keys:
+            if topic_key not in topics:
+                # Add one question from each other topic for exploration
+                if TOPIC_SUGGESTIONS[topic_key]:
+                    available_questions.append(TOPIC_SUGGESTIONS[topic_key][0])
 
-Generate exactly 3 natural follow-up questions that a recruiter or visitor might ask next about Nico Bourel.
-- Questions should be conversational and specific
-- Focus on exploring related topics (experience, skills, education, projects, interests)
-- Avoid repeating information just discussed
-- Each question should be on its own line
-- Do not number the questions
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_questions = []
+        for q in available_questions:
+            if q.lower() not in seen:
+                seen.add(q.lower())
+                unique_questions.append(q)
 
-Return ONLY the 3 questions, nothing else."""
+        # Select 3 questions (prioritize questions from retrieved topics)
+        if len(unique_questions) >= 3:
+            questions = unique_questions[:3]
+        else:
+            # Fallback to defaults if not enough questions
+            questions = (unique_questions + DEFAULT_SUGGESTIONS)[:3]
 
-    try:
-        response = openai_client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.8,
-            max_tokens=150
-        )
+    # Convert to Panel objects
+    panels = []
+    for question in questions:
+        panels.append(Panel(
+            type='suggestion',
+            title=question,
+            action='Ask this',
+            is_question=True
+        ))
 
-        questions_text = response.choices[0].message.content.strip()
-        questions = [q.strip().strip('-•123456789.') for q in questions_text.split('\n') if q.strip()]
-
-        # Convert to Panel objects (limit to 3)
-        panels = []
-        for question in questions[:3]:
-            if question:  # Only add non-empty questions
-                panels.append(Panel(
-                    type='suggestion',
-                    title=question,
-                    action='Ask this',
-                    is_question=True
-                ))
-
-        return panels
-
-    except Exception as e:
-        print(f"ERROR generating follow-up suggestions: {e}")
-        # Return empty list on error - don't break the chat flow
-        return []
+    return panels
 
 def generate_response(query: str, context_docs: list[str], has_contact_intent: bool = False) -> tuple[str, GenerationStats]:
     """Generate response using GPT-4o-mini with retrieved context and return stats."""
