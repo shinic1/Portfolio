@@ -84,6 +84,9 @@ function App() {
   ])
 
   const handleQuestionSelect = (question: string, categoryIndex: number) => {
+    // Prevent clicking while a request is in progress
+    if (isProcessing) return
+
     chatBoxRef.current?.sendMessage(question)
     setIsProcessing(true)
     setProcessingStage('embedding')
@@ -137,7 +140,7 @@ function App() {
           onStageUpdate={handleStageUpdate}
           geekMode={geekMode}
         />
-        <SuggestedQuestions onQuestionClick={handleQuestionSelect} categoryStates={categoryStates} />
+        <SuggestedQuestions onQuestionClick={handleQuestionSelect} categoryStates={categoryStates} disabled={isProcessing} />
       </div>
     </div>
   )

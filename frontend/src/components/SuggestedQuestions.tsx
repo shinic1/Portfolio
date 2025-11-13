@@ -9,9 +9,10 @@ interface CategoryState {
 interface SuggestedQuestionsProps {
   onQuestionClick: (question: string, categoryIndex: number) => void;
   categoryStates: CategoryState[];
+  disabled?: boolean;
 }
 
-export default function SuggestedQuestions({ onQuestionClick, categoryStates }: SuggestedQuestionsProps) {
+export default function SuggestedQuestions({ onQuestionClick, categoryStates, disabled }: SuggestedQuestionsProps) {
   return (
     <div className="suggested-questions">
       <div className="questions-grid">
@@ -23,6 +24,7 @@ export default function SuggestedQuestions({ onQuestionClick, categoryStates }: 
               onClick={() => onQuestionClick(currentQuestion, index)}
               className="question-button"
               data-category={categoryState.category}
+              disabled={disabled}
             >
               {currentQuestion}
             </button>
