@@ -124,3 +124,52 @@
   box-shadow: 0 20px 60px rgba(31, 38, 135, 0.4),
               inset 0 0 40px rgba(255, 255, 255, 0.1);
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  /* Reduce header padding on mobile */
+  .resume-header {
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+
+  /* Reduce viewer padding on mobile */
+  .resume-viewer {
+    padding: 1rem;
+  }
+
+  /* Adjust button sizing for mobile */
+  .back-button,
+  .download-button {
+    padding: 0.65rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  /* Reduce border radius on mobile */
+  .pdf-iframe {
+    border-radius: 12px;
+  }
+}
+
+/* Very small screens - stack header buttons */
+@media (max-width: 480px) {
+  .resume-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .back-button,
+  .download-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .resume-viewer {
+    padding: 0.75rem;
+  }
+
+  .pdf-iframe {
+    border-radius: 8px;
+  }
+}

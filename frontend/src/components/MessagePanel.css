@@ -144,7 +144,7 @@
 }
 
 /* Responsive design */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .message-panel {
     flex-direction: column;
     align-items: stretch;
@@ -153,6 +153,12 @@
 
   .panel-action {
     justify-content: center;
+  }
+
+  /* Ensure touch-friendly button sizes */
+  .panel-action {
+    min-height: 44px;
+    padding: 0.75rem 1.25rem;
   }
 }
 

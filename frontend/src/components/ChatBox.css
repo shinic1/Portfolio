@@ -335,3 +335,45 @@
 .messages-container::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  /* Expand input container to full width */
+  .input-container {
+    width: 100%;
+    right: 0;
+    left: 0;
+  }
+
+  /* Reduce padding on messages container */
+  .messages-container {
+    padding: 1.5rem 1rem;
+    max-width: 100%;
+  }
+
+  /* Reduce welcome message font size */
+  .welcome-message h2 {
+    font-size: 1.5rem;
+  }
+
+  .welcome-message p {
+    font-size: 1rem;
+  }
+
+  /* Increase scrollbar width for better touch interaction */
+  .messages-container::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  /* Add more padding to input for thumb-friendly typing */
+  .chat-input {
+    padding: 1rem 1.25rem;
+    font-size: 1rem;
+  }
+
+  /* Ensure send button is touch-friendly */
+  .send-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

@@ -99,12 +99,37 @@
 }
 
 @media (max-width: 768px) {
-  .questions-grid {
-    grid-template-columns: 1fr;
-  }
-
+  /* Expand suggested questions to full width */
   .suggested-questions {
     width: calc(100% - 2rem);
     bottom: 100px;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+  }
+
+  /* Improve touch targets - increase padding */
+  .question-button {
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    white-space: normal;
+    text-align: center;
+    min-height: 44px;
+  }
+
+  /* Stack questions vertically on very small screens */
+  .questions-grid {
+    gap: 0.75rem;
+  }
+}
+
+/* Very small screens - stack questions */
+@media (max-width: 480px) {
+  .questions-grid {
+    flex-direction: column;
+  }
+
+  .question-button {
+    width: 100%;
   }
 }

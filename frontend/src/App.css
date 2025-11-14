@@ -278,3 +278,47 @@
   filter: drop-shadow(0 0 8px rgba(102, 126, 234, 0.8));
   transform: scale(1.1);
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  /* Hide left panel with neural network visualization */
+  .left-panel {
+    display: none;
+  }
+
+  /* Expand right panel to full width */
+  .right-panel {
+    width: 100%;
+  }
+
+  /* Reposition quick links toggle to fixed position (was in left panel) */
+  .quick-links-toggle {
+    position: fixed;
+    top: 1.5rem;
+    left: 1.5rem;
+    z-index: 1000;
+  }
+
+  /* Reposition geek mode toggle to fixed position (was in left panel) */
+  .geek-mode-toggle {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 1000;
+  }
+
+  /* Adjust quick links panel positioning for mobile */
+  .quick-links-panel {
+    position: fixed;
+    top: 5rem;
+    left: 1rem;
+    right: auto;
+    min-width: 200px;
+    max-width: calc(100vw - 2rem);
+  }
+
+  /* Reduce padding on app container for mobile */
+  .app-container {
+    overflow-x: hidden;
+  }
+}
