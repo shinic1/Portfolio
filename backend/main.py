@@ -186,7 +186,7 @@ def detect_intent_and_generate_panels(query: str) -> tuple[list[Panel], bool]:
             type='github',
             title="Nico's GitHub Profile",
             subtitle='Explore code repositories and contributions',
-            url='https://github.com/nicobourel'
+            url='https://github.com/shinic1'
         ))
         has_contact_intent = True
 
