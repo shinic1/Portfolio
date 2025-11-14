@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import ChatBox from './components/ChatBox'
 import SuggestedQuestions from './components/SuggestedQuestions'
 import NeuralNetworkViz from './components/NeuralNetworkViz'
@@ -142,7 +143,7 @@ function App() {
                 <span>LinkedIn</span>
               </a>
               <a
-                href="https://github.com/nicobourel"
+                href="https://github.com/shinic1"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="quick-link-item"
@@ -152,10 +153,8 @@ function App() {
                 </svg>
                 <span>GitHub</span>
               </a>
-              <a
-                href="#"
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                to="/resume"
                 className="quick-link-item"
               >
                 <svg className="link-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -166,7 +165,7 @@ function App() {
                   <path d="M10 9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
                 <span>Resume</span>
-              </a>
+              </Link>
             </div>
           </div>
         )}
