@@ -72,15 +72,14 @@ frontend_url = os.getenv("FRONTEND_URL")
 if frontend_url:
     allowed_origins.append(frontend_url)
 
-# Add Vercel preview deployments pattern
-allowed_origins.append("https://*.vercel.app")
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",  # Allow all Vercel preview deployments
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],  # Restrict to only needed methods
-    allow_headers=["Content-Type", "Authorization"],  # Restrict headers
+    allow_headers=["*"],  # Allow all headers (needed for browser preflight requests)
+    expose_headers=["*"],  # Expose all response headers
 )
 
 class ChatRequest(BaseModel):
@@ -91,9 +90,9 @@ class ChatRequest(BaseModel):
         description="User's question (1-500 characters)"
     )
 
-    @field_validator('question', mode='before')
+    @field_validator('question')
     @classmethod
-    def validate_question(cls, v):
+    def validate_question(cls, v: str):
         # Remove leading/trailing whitespace
         v = v.strip()
 
