@@ -4,10 +4,12 @@ Provides /chat endpoint for RAG-based question answering using Pinecone.
 """
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field, field_validator
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field, field_validator, ValidationError
 from contextlib import asynccontextmanager
 import os
 import re
+import traceback
 from openai import OpenAI
 from pinecone import Pinecone
 from dotenv import load_dotenv
@@ -57,6 +59,25 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="NicoBot API", lifespan=lifespan)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Global exception handler to ensure CORS headers on all errors
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Catch all exceptions and return with CORS headers."""
+    error_detail = str(exc)
+    error_traceback = traceback.format_exc()
+    print(f"ERROR: {error_detail}")
+    print(f"TRACEBACK:\n{error_traceback}")
+
+    return JSONResponse(
+        status_code=500,
+        content={"detail": error_detail, "type": type(exc).__name__},
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "*",
+            "Access-Control-Allow-Headers": "*",
+        }
+    )
 
 # Configure CORS - Fully permissive for debugging
 app.add_middleware(
