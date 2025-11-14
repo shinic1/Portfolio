@@ -2,32 +2,52 @@
 FastAPI backend for NicoBot portfolio chatbot.
 Provides /chat endpoint for RAG-based question answering using Pinecone.
 """
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, validator
 import os
+import re
 from openai import OpenAI
 from pinecone import Pinecone
 from dotenv import load_dotenv
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 # Load environment variables
 load_dotenv()
 
+# Initialize rate limiter
+limiter = Limiter(key_func=get_remote_address)
+
 # Initialize FastAPI app
 app = FastAPI(title="NicoBot API")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Configure CORS
+# Build allowed origins list without wildcard fallback
+allowed_origins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:3000",
+]
+
+# Add production frontend URL if provided
+frontend_url = os.getenv("FRONTEND_URL")
+if frontend_url:
+    allowed_origins.append(frontend_url)
+
+# Add Vercel preview deployments pattern
+allowed_origins.append("https://*.vercel.app")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "https://*.vercel.app",
-        os.getenv("FRONTEND_URL", "*")
-    ],
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],  # Restrict to only needed methods
+    allow_headers=["Content-Type", "Authorization"],  # Restrict headers
 )
 
 # Initialize clients
@@ -39,7 +59,42 @@ INDEX_NAME = "nicobot-portfolio"
 pinecone_index = None
 
 class ChatRequest(BaseModel):
-    question: str
+    question: str = Field(
+        ...,
+        min_length=1,
+        max_length=500,
+        description="User's question (1-500 characters)"
+    )
+
+    @validator('question')
+    def validate_question(cls, v):
+        # Remove leading/trailing whitespace
+        v = v.strip()
+
+        # Check if empty after stripping
+        if not v:
+            raise ValueError("Question cannot be empty or only whitespace")
+
+        # Check for excessive whitespace (potential spam)
+        if len(v.split()) > 100:
+            raise ValueError("Question is too long (max 100 words)")
+
+        # Basic sanitization - remove control characters but keep newlines/tabs
+        v = re.sub(r'[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f]', '', v)
+
+        # Check for suspicious patterns (basic injection prevention)
+        suspicious_patterns = [
+            r'<script',
+            r'javascript:',
+            r'onerror=',
+            r'onclick=',
+            r'on\w+='
+        ]
+        for pattern in suspicious_patterns:
+            if re.search(pattern, v, re.IGNORECASE):
+                raise ValueError("Question contains invalid content")
+
+        return v
 
 class Panel(BaseModel):
     type: str  # 'linkedin', 'github', 'email', 'project', 'resume', 'link', 'suggestion'
@@ -383,7 +438,8 @@ Answer based only on the context above:"""
     return reply, stats
 
 @app.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest):
+@limiter.limit("20/minute")
+async def chat(req: Request, request: ChatRequest):
     """
     Main chat endpoint that handles RAG flow:
     1. Embed user question
@@ -466,7 +522,8 @@ async def chat(request: ChatRequest):
         raise HTTPException(status_code=500, detail="An error occurred while processing your request")
 
 @app.get("/")
-async def root():
+@limiter.limit("60/minute")
+async def root(req: Request):
     """Health check endpoint."""
     return {"status": "ok", "message": "NicoBot API is running"}
 

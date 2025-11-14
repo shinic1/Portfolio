@@ -3,3 +3,4 @@ uvicorn==0.34.0
 openai==1.58.1
 pinecone-client==5.0.1
 python-dotenv==1.0.1
+slowapi==0.1.9
