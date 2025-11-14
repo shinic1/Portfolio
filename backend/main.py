@@ -4,7 +4,8 @@ Provides /chat endpoint for RAG-based question answering using Pinecone.
 """
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
+from contextlib import asynccontextmanager
 import os
 import re
 from openai import OpenAI
@@ -17,11 +18,43 @@ from slowapi.errors import RateLimitExceeded
 # Load environment variables
 load_dotenv()
 
+# Initialize clients
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
+
+# Pinecone index
+INDEX_NAME = "nicobot-portfolio"
+pinecone_index = None
+
 # Initialize rate limiter
 limiter = Limiter(key_func=get_remote_address)
 
-# Initialize FastAPI app
-app = FastAPI(title="NicoBot API")
+# Lifespan event handler
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Handle startup and shutdown events."""
+    # Startup: Connect to Pinecone
+    global pinecone_index
+    try:
+        print(f"Connecting to Pinecone index: {INDEX_NAME}")
+        pinecone_index = pc.Index(INDEX_NAME)
+
+        # Verify connection
+        stats = pinecone_index.describe_index_stats()
+        print(f"✓ Successfully connected to Pinecone")
+        print(f"  - Total vectors: {stats.total_vector_count}")
+    except Exception as e:
+        print(f"ERROR: Could not connect to Pinecone. Please run embeddings_pinecone.py first.")
+        print(f"Error: {e}")
+        raise
+
+    yield
+
+    # Shutdown: cleanup if needed
+    print("Shutting down...")
+
+# Initialize FastAPI app with lifespan
+app = FastAPI(title="NicoBot API", lifespan=lifespan)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
@@ -50,14 +83,6 @@ app.add_middleware(
     allow_headers=["Content-Type", "Authorization"],  # Restrict headers
 )
 
-# Initialize clients
-openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
-
-# Pinecone index
-INDEX_NAME = "nicobot-portfolio"
-pinecone_index = None
-
 class ChatRequest(BaseModel):
     question: str = Field(
         ...,
@@ -66,7 +91,8 @@ class ChatRequest(BaseModel):
         description="User's question (1-500 characters)"
     )
 
-    @validator('question')
+    @field_validator('question', mode='before')
+    @classmethod
     def validate_question(cls, v):
         # Remove leading/trailing whitespace
         v = v.strip()
@@ -138,24 +164,6 @@ class ChatResponse(BaseModel):
     reply: str
     metadata: ChatMetadata
     panels: list[Panel] = []
-
-@app.on_event("startup")
-async def load_index():
-    """Connect to Pinecone index on startup."""
-    global pinecone_index
-
-    try:
-        print(f"Connecting to Pinecone index: {INDEX_NAME}")
-        pinecone_index = pc.Index(INDEX_NAME)
-
-        # Verify connection
-        stats = pinecone_index.describe_index_stats()
-        print(f"✓ Successfully connected to Pinecone")
-        print(f"  - Total vectors: {stats.total_vector_count}")
-    except Exception as e:
-        print(f"ERROR: Could not connect to Pinecone. Please run embeddings_pinecone.py first.")
-        print(f"Error: {e}")
-        raise
 
 def embed_query(query: str) -> tuple[list[float], EmbeddingStats]:
     """Generate embedding for a query using OpenAI and return stats."""
@@ -522,8 +530,7 @@ async def chat(req: Request, request: ChatRequest):
         raise HTTPException(status_code=500, detail="An error occurred while processing your request")
 
 @app.get("/")
-@limiter.limit("60/minute")
-async def root(req: Request):
+async def root():
     """Health check endpoint."""
     return {"status": "ok", "message": "NicoBot API is running"}
 
