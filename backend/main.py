@@ -453,7 +453,7 @@ Answer based only on the context above:"""
 
 @app.post("/chat", response_model=ChatResponse)
 @limiter.limit("20/minute")
-async def chat(req: Request, request: ChatRequest):
+async def chat(request: Request, chat_request: ChatRequest):
     """
     Main chat endpoint that handles RAG flow:
     1. Embed user question
@@ -461,7 +461,7 @@ async def chat(req: Request, request: ChatRequest):
     3. Generate response using GPT-4o-mini
     Returns response with metadata about each pipeline stage
     """
-    if not request.question.strip():
+    if not chat_request.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty")
 
     try:
@@ -469,7 +469,7 @@ async def chat(req: Request, request: ChatRequest):
         pipeline_start = time.time()
 
         # Step 1: Generate embedding
-        query_embedding, embedding_stats = embed_query(request.question)
+        query_embedding, embedding_stats = embed_query(chat_request.question)
 
         # Step 2: Retrieve relevant documents
         relevant_docs, retrieval_matches, retrieval_time_ms = retrieve_relevant_docs(query_embedding, k=3)
@@ -496,17 +496,17 @@ async def chat(req: Request, request: ChatRequest):
             )
 
         # Step 3: Detect intent and generate panels first
-        panels, has_contact_intent = detect_intent_and_generate_panels(request.question)
-        print(f"DEBUG: Query: {request.question}")
+        panels, has_contact_intent = detect_intent_and_generate_panels(chat_request.question)
+        print(f"DEBUG: Query: {chat_request.question}")
         print(f"DEBUG: Detected {len(panels)} panels, has_contact_intent={has_contact_intent}")
         for panel in panels:
             print(f"DEBUG: Panel type={panel.type}, title={panel.title}")
 
         # Step 4: Generate response with context about whether we're showing contact panels
-        reply, generation_stats = generate_response(request.question, relevant_docs, has_contact_intent)
+        reply, generation_stats = generate_response(chat_request.question, relevant_docs, has_contact_intent)
 
         # Step 5: Generate contextual follow-up suggestions
-        suggestion_panels = generate_follow_up_suggestions(request.question, reply, retrieval_matches)
+        suggestion_panels = generate_follow_up_suggestions(chat_request.question, reply, retrieval_matches)
         print(f"DEBUG: Generated {len(suggestion_panels)} follow-up suggestions")
 
         # Combine contact panels and suggestion panels
