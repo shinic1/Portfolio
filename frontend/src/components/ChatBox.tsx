@@ -136,7 +136,7 @@ const ChatBox = forwardRef<ChatBoxRef, ChatBoxProps>(({ onMetadataUpdate, onStag
         {messages.length === 0 && (
           <div className="welcome-message">
             <div className="welcome-icon">🤖</div>
-            <h2>Hey there! I'm NicoBot</h2>
+            <h2>Hey there! I'm Nebula</h2>
             <p>Your AI guide to Nico's portfolio. Ask me anything about his projects, skills, experience, or education!</p>
           </div>
         )}
