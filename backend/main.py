@@ -26,7 +26,13 @@ pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 
 # Pinecone index
 INDEX_NAME = "nicobot-portfolio"
+EMBEDDING_MODEL = "text-embedding-3-small"
+EMBEDDING_DIMENSION = 1536
+GENERATION_MODEL = "gpt-4o-mini"
+LINKEDIN_URL = "https://www.linkedin.com/in/nico-bourel-09237a216/"
+GITHUB_URL = "https://github.com/shinic1"
 CONTACT_EMAIL = "nico.bourel@swedev.online"
+RESUME_URL = "/resume"
 pinecone_index = None
 
 # Initialize rate limiter
@@ -177,10 +183,9 @@ def embed_query(query: str) -> tuple[list[float], EmbeddingStats]:
     import time
     import math
 
-    embedding_model = "text-embedding-3-small"
     start_time = time.time()
     response = openai_client.embeddings.create(
-        model=embedding_model,
+        model=EMBEDDING_MODEL,
         input=[query]
     )
     embedding = response.data[0].embedding
@@ -198,7 +203,7 @@ def embed_query(query: str) -> tuple[list[float], EmbeddingStats]:
         active_dimensions=active_dims,
         sample_values=[round(x, 6) for x in embedding[:10]],  # First 10 dimensions
         time_ms=int((end_time - start_time) * 1000),
-        model=embedding_model,
+        model=EMBEDDING_MODEL,
         sparsity=round(sparsity, 2)
     )
 
@@ -246,7 +251,7 @@ def detect_intent_and_generate_panels(query: str) -> tuple[list[Panel], bool]:
             type='linkedin',
             title='Connect with Nico on LinkedIn',
             subtitle='View professional experience and network',
-            url='https://www.linkedin.com/in/nico-bourel-09237a216/'
+            url=LINKEDIN_URL
         ))
         has_contact_intent = True
 
@@ -256,7 +261,7 @@ def detect_intent_and_generate_panels(query: str) -> tuple[list[Panel], bool]:
             type='github',
             title="Nico's GitHub Profile",
             subtitle='Explore code repositories and contributions',
-            url='https://github.com/shinic1'
+            url=GITHUB_URL
         ))
         has_contact_intent = True
 
@@ -270,7 +275,95 @@ def detect_intent_and_generate_panels(query: str) -> tuple[list[Panel], bool]:
         ))
         has_contact_intent = True
 
+    # Resume intent
+    if any(keyword in query_lower for keyword in ['resume', 'cv']):
+        panels.append(Panel(
+            type='resume',
+            title="View Nico's Resume",
+            subtitle='Open the full resume',
+            url=RESUME_URL
+        ))
+        has_contact_intent = True
+
     return panels, has_contact_intent
+
+def should_use_shortcut_response(query: str, panels: list[Panel]) -> bool:
+    """Use deterministic responses for simple recruiter actions that don't need RAG."""
+    query_lower = query.lower()
+
+    if not panels:
+        return False
+
+    shortcut_keywords = [
+        'linkedin', 'github', 'email', 'contact', 'reach', 'get in touch',
+        'resume', 'cv', 'phone', 'call'
+    ]
+    rag_keywords = [
+        'experience', 'work', 'role', 'internship', 'project', 'projects',
+        'skill', 'skills', 'technology', 'technologies', 'education',
+        'major', 'graduate', 'studying', 'background'
+    ]
+
+    token_count = len(query_lower.split())
+    has_shortcut_keyword = any(keyword in query_lower for keyword in shortcut_keywords)
+    has_rag_keyword = any(keyword in query_lower for keyword in rag_keywords)
+
+    return has_shortcut_keyword and token_count <= 12 and not has_rag_keyword
+
+def build_shortcut_reply(panels: list[Panel]) -> str:
+    """Return a deterministic reply for simple contact and resume requests."""
+    panel_types = {panel.type for panel in panels}
+
+    if panel_types == {'email'}:
+        return "I've included Nico's email below so you can reach him directly."
+    if panel_types == {'linkedin'}:
+        return "I've included Nico's LinkedIn profile below."
+    if panel_types == {'github'}:
+        return "I've included Nico's GitHub profile below."
+    if panel_types == {'resume'}:
+        return "I've included Nico's resume below."
+
+    resources = []
+    if 'linkedin' in panel_types:
+        resources.append('LinkedIn')
+    if 'github' in panel_types:
+        resources.append('GitHub')
+    if 'email' in panel_types:
+        resources.append('email')
+    if 'resume' in panel_types:
+        resources.append('resume')
+
+    if len(resources) == 2:
+        resource_text = f"{resources[0]} and {resources[1]}"
+    else:
+        resource_text = ", ".join(resources[:-1]) + f", and {resources[-1]}" if len(resources) > 2 else resources[0]
+
+    return f"I've included Nico's {resource_text} below."
+
+def build_shortcut_metadata(total_time_ms: int) -> ChatMetadata:
+    """Return metadata for deterministic shortcut responses."""
+    return ChatMetadata(
+        embedding_stats=EmbeddingStats(
+            dimension=0,
+            norm=0.0,
+            active_dimensions=0,
+            sample_values=[],
+            time_ms=0,
+            model="shortcut",
+            sparsity=0.0
+        ),
+        retrieval_stats=[],
+        generation_stats=GenerationStats(
+            tokens=0,
+            time_ms=0,
+            model="shortcut",
+            prompt_tokens=0,
+            completion_tokens=0
+        ),
+        confidence_score=0.0,
+        total_time_ms=total_time_ms,
+        retrieval_time_ms=0
+    )
 
 def extract_topics_from_docs(retrieval_matches: list) -> list[str]:
     """Extract main topics from retrieved document IDs (e.g., 'experience', 'skills', 'education')."""
@@ -390,7 +483,6 @@ def generate_response(query: str, context_docs: list[str], has_contact_intent: b
     start_time = time.time()
 
     context = "\n\n".join(context_docs)
-    generation_model = "gpt-4o-mini"
 
     system_prompt = """You are Nico Bourel's portfolio assistant. Your role is to help visitors learn about Nico's background, skills, projects, and experience.
 
@@ -425,7 +517,7 @@ Question: {query}{contact_hint}
 Answer based only on the context above:"""
 
     response = openai_client.chat.completions.create(
-        model=generation_model,
+        model=GENERATION_MODEL,
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
@@ -445,7 +537,7 @@ Answer based only on the context above:"""
     stats = GenerationStats(
         tokens=total_tokens,
         time_ms=time_ms,
-        model=generation_model,
+        model=GENERATION_MODEL,
         prompt_tokens=prompt_tokens,
         completion_tokens=completion_tokens
     )
@@ -469,6 +561,20 @@ async def chat(request: Request, chat_request: ChatRequest):
         import time
         pipeline_start = time.time()
 
+        # Step 0: Detect contact/social intent before paying the RAG latency cost
+        panels, has_contact_intent = detect_intent_and_generate_panels(chat_request.question)
+        if should_use_shortcut_response(chat_request.question, panels):
+            suggestion_panels = [
+                Panel(type='suggestion', title=question, action='Ask this', is_question=True)
+                for question in TOPIC_SUGGESTIONS['contact'][:3]
+            ]
+            total_time = int((time.time() - pipeline_start) * 1000)
+            return ChatResponse(
+                reply=build_shortcut_reply(panels),
+                metadata=build_shortcut_metadata(total_time),
+                panels=panels + suggestion_panels
+            )
+
         # Step 1: Generate embedding
         query_embedding, embedding_stats = embed_query(chat_request.question)
 
@@ -486,7 +592,7 @@ async def chat(request: Request, chat_request: ChatRequest):
                     generation_stats=GenerationStats(
                         tokens=0,
                         time_ms=0,
-                        model="gpt-4o-mini",
+                        model=GENERATION_MODEL,
                         prompt_tokens=0,
                         completion_tokens=0
                     ),
@@ -496,8 +602,7 @@ async def chat(request: Request, chat_request: ChatRequest):
                 )
             )
 
-        # Step 3: Detect intent and generate panels first
-        panels, has_contact_intent = detect_intent_and_generate_panels(chat_request.question)
+        # Step 3: Panels were already detected before RAG and are reused here
         print(f"DEBUG: Query: {chat_request.question}")
         print(f"DEBUG: Detected {len(panels)} panels, has_contact_intent={has_contact_intent}")
         for panel in panels:
@@ -540,6 +645,28 @@ async def chat(request: Request, chat_request: ChatRequest):
 async def root():
     """Health check endpoint."""
     return {"status": "ok", "message": "NicoBot API is running"}
+
+@app.get("/warmup")
+async def warmup():
+    """Warm the backend and Pinecone query path on page load."""
+    import time
+
+    if pinecone_index is None:
+        raise HTTPException(status_code=503, detail="Pinecone index is not ready")
+
+    start_time = time.time()
+    pinecone_index.query(
+        vector=[0.0] * EMBEDDING_DIMENSION,
+        top_k=1,
+        include_metadata=False
+    )
+    total_time_ms = int((time.time() - start_time) * 1000)
+
+    return {
+        "status": "ok",
+        "message": "Warm-up completed",
+        "pinecone_query_time_ms": total_time_ms
+    }
 
 if __name__ == "__main__":
     import uvicorn

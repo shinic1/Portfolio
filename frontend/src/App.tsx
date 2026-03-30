@@ -39,7 +39,34 @@ interface NetworkMetadata {
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
-let hasWarmedBackend = false
+const MIN_WARMUP_INDICATOR_MS = 1200
+
+let warmupStatus: 'idle' | 'warming' | 'ready' | 'error' = 'idle'
+let warmupPromise: Promise<void> | null = null
+
+function warmBackend() {
+  if (!warmupPromise) {
+    warmupStatus = 'warming'
+    warmupPromise = fetch(`${API_BASE_URL}/warmup`, {
+      method: 'GET',
+      cache: 'no-store',
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Warm-up failed with status ${response.status}`)
+        }
+      })
+      .then(() => {
+        warmupStatus = 'ready'
+      })
+      .catch((error) => {
+        warmupStatus = 'error'
+        console.warn('Backend warm-up failed:', error)
+      })
+  }
+
+  return warmupPromise
+}
 
 function App() {
   const chatBoxRef = useRef<{
@@ -47,6 +74,7 @@ function App() {
     isLoading: boolean;
     latestMetadata?: NetworkMetadata;
   }>(null)
+  const [isWarmingBackend, setIsWarmingBackend] = useState(warmupStatus !== 'ready' && warmupStatus !== 'error')
   const [metadata, setMetadata] = useState<NetworkMetadata | undefined>()
   const [isProcessing, setIsProcessing] = useState(false)
   const [processingStage, setProcessingStage] = useState<'embedding' | 'retrieval' | 'generation' | 'idle'>('idle')
@@ -89,15 +117,32 @@ function App() {
   ])
 
   useEffect(() => {
-    if (hasWarmedBackend) return
-    hasWarmedBackend = true
+    if (warmupStatus === 'ready' || warmupStatus === 'error') {
+      setIsWarmingBackend(false)
+      return
+    }
 
-    void fetch(`${API_BASE_URL}/`, {
-      method: 'GET',
-      cache: 'no-store',
-    }).catch((error) => {
-      console.warn('Backend warm-up failed:', error)
+    let isCancelled = false
+    let timeoutId: number | undefined
+    const startTime = Date.now()
+
+    void warmBackend().finally(() => {
+      const elapsed = Date.now() - startTime
+      const remaining = Math.max(0, MIN_WARMUP_INDICATOR_MS - elapsed)
+
+      timeoutId = window.setTimeout(() => {
+        if (!isCancelled) {
+          setIsWarmingBackend(false)
+        }
+      }, remaining)
     })
+
+    return () => {
+      isCancelled = true
+      if (timeoutId !== undefined) {
+        window.clearTimeout(timeoutId)
+      }
+    }
   }, [])
 
   const handleQuestionSelect = (question: string, categoryIndex: number) => {
@@ -218,6 +263,7 @@ function App() {
           onMetadataUpdate={handleMetadataUpdate}
           onStageUpdate={handleStageUpdate}
           geekMode={geekMode}
+          isWarmingBackend={isWarmingBackend}
         />
         <SuggestedQuestions onQuestionClick={handleQuestionSelect} categoryStates={categoryStates} disabled={isProcessing} />
       </div>

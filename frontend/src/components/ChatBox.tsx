@@ -46,9 +46,10 @@ interface ChatBoxProps {
   onMetadataUpdate?: (metadata: NetworkMetadata) => void;
   onStageUpdate?: (stage: 'embedding' | 'retrieval' | 'generation') => void;
   geekMode?: boolean;
+  isWarmingBackend?: boolean;
 }
 
-const ChatBox = forwardRef<ChatBoxRef, ChatBoxProps>(({ onMetadataUpdate, onStageUpdate }, ref) => {
+const ChatBox = forwardRef<ChatBoxRef, ChatBoxProps>(({ onMetadataUpdate, onStageUpdate, isWarmingBackend = false }, ref) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -133,6 +134,16 @@ const ChatBox = forwardRef<ChatBoxRef, ChatBoxProps>(({ onMetadataUpdate, onStag
   return (
     <div className="chatbox-container">
       <div className="messages-container" ref={messagesContainerRef}>
+        {isWarmingBackend && (
+          <div className="startup-banner">
+            <span className="startup-pulse"></span>
+            <div className="startup-copy">
+              <strong>Warming up AI search</strong>
+              <span>First reply can take a moment while the backend wakes up.</span>
+            </div>
+          </div>
+        )}
+
         {messages.length === 0 && (
           <div className="welcome-message">
             <div className="welcome-icon">🤖</div>
@@ -183,7 +194,7 @@ const ChatBox = forwardRef<ChatBoxRef, ChatBoxProps>(({ onMetadataUpdate, onStag
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask me anything about Nico..."
+          placeholder={isWarmingBackend ? "AI search is warming up..." : "Ask me anything about Nico..."}
           disabled={isLoading}
           className="chat-input"
         />
