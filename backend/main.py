@@ -18,7 +18,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 # Load environment variables
-load_dotenv()
+load_dotenv(override=True)
 
 # Initialize clients
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -415,14 +415,27 @@ TOPIC_SUGGESTIONS = {
         "Does he have LinkedIn?",
         "What's his email?",
         "Can I see his GitHub?"
+    ],
+    'project': [
+        "Tell me about Jetter",
+        "What is qa-pipeline?",
+        "What did he build at AnSer?",
+        "Which project uses Kafka?",
+        "Which projects are personal?"
+    ],
+    'ownership': [
+        "Which projects are personal?",
+        "Which projects are org work?",
+        "What can he show publicly?",
+        "What did he build at AnSer?"
     ]
 }
 
 # Default suggestions for when no specific topics are retrieved
 DEFAULT_SUGGESTIONS = [
-    "What projects has he done?",
-    "Tell me about his skills",
-    "Where is he studying?"
+    "Tell me about Jetter",
+    "What did he build at AnSer?",
+    "Which projects are personal vs org?"
 ]
 
 def generate_follow_up_suggestions(query: str, reply: str, retrieval_matches: list) -> list[Panel]:

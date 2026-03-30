@@ -1,42 +1,70 @@
 [
   {
     "id": "experience_1",
-    "content": "Work Experience: Nico currently works as a part time AI Engineer intern for AnSer in Green Bay, his responsibilities include integrating AI models in production applications, building and maintaining AI pipelines and researching new AI technologies."
+    "content": "Work Experience: Nico is an AI Engineering Intern at AnSer in Green Bay, Wisconsin, starting in May 2025. He built an internal applicant tracking system with automated screening calls, candidate message tracking, and Microsoft Bookings integration to streamline recruiting workflows. He also developed 15 automated QA scripts for human agent performance evaluation across roughly 20,000 calls and built enterprise voice-agent demos using Vapi and ElevenLabs."
   },
   {
     "id": "experience_2",
-    "content": "Work Experience: Nico previously worked as an ATS Technician at UW–Green Bay, supporting classroom technology, performing weekly maintenance checks, and managing tech equipment rentals."
+    "content": "Work Experience: Nico worked as a Front Desk Assistant for Housing and Residential Education at the University of Wisconsin - Green Bay from October 2023 to May 2025. He assisted students and parents with housing and application-related questions, coordinated after-hours emergency dispatch communication for campus housing, and resolved resident concerns through front-desk support."
   },
   {
     "id": "experience_3",
-    "content": "Work Experience: Nico previously worked as an ATS Technician at UW–Green Bay, supporting classroom technology, performing weekly maintenance checks, and managing tech equipment rentals."
-  },
-  {
-    "id": "experience_4",
-    "content": "Apprenticeship Experience: At CSS GmbH in Nuremberg, Nico worked as an IT Specialist for Systems and Customer Care. He maintained databases, configured servers, and provided troubleshooting support both remotely and onsite."
-  },
-  {
-    "id": "leadership_1",
-    "content": "Leadership Experience: As Chairman of Fundraising for Kappa Sigma (Upsilon-Eta chapter), Nico plans and leads multiple fundraising and philanthropy events, collaborating with other fraternities and sororities."
+    "content": "Work Experience: Nico worked as an ATS Technician at the University of Wisconsin - Green Bay from January 2023 to October 2023. He provided frontline technical support for classroom and faculty technology issues, performed routine room technology checks, and managed checkout and support of campus technology equipment."
   },
   {
     "id": "education_1",
-    "content": "Education: Nico is pursuing a BSc in Computer Science at the University of Wisconsin–Green Bay, expected graduation May 2026."
+    "content": "Education: Nico Bourel is pursuing a Bachelor of Science in Computer Science at the University of Wisconsin - Green Bay in Green Bay, Wisconsin. His expected graduation date is May 2026."
   },
   {
     "id": "skills_1",
-    "content": "Technical Skills: Proficient in Java, Python, HTML, CSS, JavaScript, React, MySQL, and R-Studio."
+    "content": "Technical Skills: Nico's primary programming languages are Python, TypeScript, Java, and JavaScript."
   },
   {
     "id": "skills_2",
-    "content": "Language Skills: Native in German and fluent in English"
+    "content": "Technical Skills: Nico regularly works with Claude Code, Codex, GitHub, Twilio, Jira, Google Cloud Platform, and Docker."
   },
   {
-    "id": "interests_1",
-    "content": "Interests: Passionate about mathematics, engineering, computer science, golf, and winter sports."
+    "id": "skills_3",
+    "content": "Technical Skills: Nico works with REST APIs, FastAPI, Next.js, Node.js, Prisma, and PostgreSQL. His core concepts include AI workflow automation, prompt engineering, system integration, and QA automation."
   },
   {
-    "id": "contact_info",
-    "content": "Contact Information: Email Nico at nico.bourel@swedev.online, visit his portfolio at www.swedev.online, or call +1 (313) 722-0915."
+    "id": "skills_4",
+    "content": "Technical Themes: Across recent projects, Nico has worked on voice AI, retrieval-augmented applications, distributed processing, recruiter workflow automation, and call quality analysis. His stack across projects includes FastAPI, Next.js, PostgreSQL, Kafka, Docker, Kubernetes, OpenAI, Pinecone, Twilio, Vapi, and SwiftUI."
+  },
+  {
+    "id": "project_jetter",
+    "content": "Project: Jetter. Ownership: Personal project. Jetter is a Swift and SwiftUI iOS app that helps travelers reduce jet lag by recommending the ideal sleep timing around long-haul flights. It supports live flight lookup and manual itinerary planning, uses timezone-aware scheduling logic, and includes airport search, meal timing guidance, readiness scoring, pre-flight preparation guidance, and shareable trip summaries."
+  },
+  {
+    "id": "project_portfolio",
+    "content": "Project: AI portfolio website. Ownership: Personal project. Nico built a full-stack portfolio platform with a React and Vite frontend, a FastAPI backend, and OpenAI plus Pinecone retrieval-augmented responses. The system includes recruiter-friendly quick links, input validation, rate limiting, and a chatbot that answers questions about his experience and projects."
+  },
+  {
+    "id": "project_qa_pipeline",
+    "content": "Project: qa-pipeline. Ownership: Personal project. qa-pipeline is a distributed call center quality assurance system built with Next.js, FastAPI, Python workers, Apache Kafka, PostgreSQL, MinIO, Docker, and Kubernetes or K3s. It ingests audio, runs transcription and diarization, scores calls with OpenAI models, and displays results through a dashboard, making it one of Nico's clearest examples of Kafka and Kubernetes experience."
+  },
+  {
+    "id": "project_qa_evaluations",
+    "content": "Project: qa-evaluations. Ownership: Org project at AnSer-AI-Solutions. qa-evaluations is a monorepo for automated call quality assessment where individual evaluations run as independent services or consumers instead of a single monolith. Nico's work aligns with building automated QA scripts, AI scoring workflows, batch and API evaluation paths, and scalable quality analysis for call center operations."
+  },
+  {
+    "id": "project_application_assistant_dashboard",
+    "content": "Project: Application Assistant Dashboard. Ownership: Org project at AnSer-AI-Solutions. This is an AI recruiting platform that automates candidate screening through voice calls, SMS communication, and interview scheduling. The system uses Next.js and React, TypeScript, PostgreSQL, Prisma, Vapi AI, Twilio, TidyCal, and OpenAI-backed resume parsing to manage candidates through the hiring funnel."
+  },
+  {
+    "id": "project_application_assistant_dashboard_cron",
+    "content": "Project: Application Assistant automation layer. Ownership: Org project at AnSer-AI-Solutions. The recruiting platform includes a separate background automation service that schedules calls, syncs candidate communications and bookings, processes SMS flows, and keeps hiring operations moving without manual follow-up. This work highlights Nico's experience with operational automation and multi-service system design."
+  },
+  {
+    "id": "ownership_1",
+    "content": "Project Ownership: Personal projects highlighted in Nico's portfolio include Jetter, qa-pipeline, and the portfolio website itself. These are projects he owns directly under his personal GitHub or built independently as portfolio work."
+  },
+  {
+    "id": "ownership_2",
+    "content": "Project Ownership: Org projects highlighted in Nico's portfolio include qa-evaluations and Application Assistant Dashboard at AnSer-AI-Solutions. Nico can discuss the product goals, his contributions, and the stack at a safe public level, but they are not personal side projects."
+  },
+  {
+    "id": "contact_1",
+    "content": "Contact Information: Email Nico at nico.bourel@swedev.online, call +1 (313) 722-0915, visit https://swedev.online, view GitHub at https://github.com/shinic1, and connect on LinkedIn at https://www.linkedin.com/in/nico-bourel-09237a216/."
   }
 ]

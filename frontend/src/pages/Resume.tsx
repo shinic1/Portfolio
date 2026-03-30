@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import resumePdf from '../assets/Resume Nico Bourel.pdf'
+import resumePdf from '../assets/Resume Nico Bourel updated.pdf'
 import './Resume.css'
 
 function Resume() {

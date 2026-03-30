@@ -9,7 +9,7 @@ from pinecone import Pinecone, ServerlessSpec
 from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv()
+load_dotenv(override=True)
 
 # Initialize clients
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -55,6 +55,9 @@ def main():
 
     # Connect to index
     index = pc.Index(INDEX_NAME)
+
+    print("Clearing existing vectors from Pinecone index...")
+    index.delete(delete_all=True)
 
     print(f"\nGenerating embeddings for {len(docs)} documents...")
 
