@@ -26,6 +26,7 @@ pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 
 # Pinecone index
 INDEX_NAME = "nicobot-portfolio"
+CONTACT_EMAIL = "nico.bourel@swedev.online"
 pinecone_index = None
 
 # Initialize rate limiter
@@ -264,8 +265,8 @@ def detect_intent_and_generate_panels(query: str) -> tuple[list[Panel], bool]:
         panels.append(Panel(
             type='email',
             title='Email Nico',
-            subtitle='nico.bourel@example.com',
-            url='mailto:nico.bourel@example.com'
+            subtitle=CONTACT_EMAIL,
+            url=f'mailto:{CONTACT_EMAIL}'
         ))
         has_contact_intent = True
 

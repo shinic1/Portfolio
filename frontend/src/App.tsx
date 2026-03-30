@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import ChatBox from './components/ChatBox'
 import SuggestedQuestions from './components/SuggestedQuestions'
@@ -37,6 +37,9 @@ interface NetworkMetadata {
   total_time_ms: number;
   retrieval_time_ms: number;
 }
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+let hasWarmedBackend = false
 
 function App() {
   const chatBoxRef = useRef<{
@@ -84,6 +87,18 @@ function App() {
       ]
     }
   ])
+
+  useEffect(() => {
+    if (hasWarmedBackend) return
+    hasWarmedBackend = true
+
+    void fetch(`${API_BASE_URL}/`, {
+      method: 'GET',
+      cache: 'no-store',
+    }).catch((error) => {
+      console.warn('Backend warm-up failed:', error)
+    })
+  }, [])
 
   const handleQuestionSelect = (question: string, categoryIndex: number) => {
     // Prevent clicking while a request is in progress
