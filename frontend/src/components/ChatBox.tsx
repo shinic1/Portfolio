@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import './ChatBox.css';
 import MessagePanel, { type Panel } from './MessagePanel';
 
@@ -159,7 +161,22 @@ const ChatBox = forwardRef<ChatBoxRef, ChatBoxProps>(({ onMetadataUpdate, onStag
             </div>
             <div className="message-wrapper">
               <div className="message-content">
-                {message.content}
+                {message.role === 'assistant' ? (
+                  <div className="message-markdown">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        a: ({ node: _node, ...props }) => (
+                          <a {...props} target="_blank" rel="noopener noreferrer" />
+                        ),
+                      }}
+                    >
+                      {message.content}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  message.content
+                )}
               </div>
               {message.panels && message.panels.length > 0 && (
                 <div className="message-panels">

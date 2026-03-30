@@ -192,6 +192,63 @@
   -webkit-user-select: text;
 }
 
+.message-markdown > *:first-child {
+  margin-top: 0;
+}
+
+.message-markdown > *:last-child {
+  margin-bottom: 0;
+}
+
+.message-markdown p,
+.message-markdown ul,
+.message-markdown ol,
+.message-markdown pre,
+.message-markdown blockquote {
+  margin: 0 0 0.85rem;
+}
+
+.message-markdown ul,
+.message-markdown ol {
+  padding-left: 1.4rem;
+}
+
+.message-markdown li + li {
+  margin-top: 0.3rem;
+}
+
+.message-markdown strong {
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.message-markdown a {
+  color: #9db4ff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.message-markdown code {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.9em;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.1rem 0.3rem;
+  border-radius: 6px;
+}
+
+.message-markdown pre {
+  overflow-x: auto;
+  background: rgba(10, 14, 26, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+}
+
+.message-markdown pre code {
+  background: transparent;
+  padding: 0;
+}
+
 .message-panels {
   display: flex;
   flex-direction: column;
