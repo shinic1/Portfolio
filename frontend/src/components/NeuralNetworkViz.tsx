@@ -177,8 +177,8 @@ export default function NeuralNetworkViz({ isProcessing, metadata, processingSta
         const activation = (conn.from.activation + conn.to.activation) / 2;
         const alpha = activation * 0.5;
 
-        ctx.strokeStyle = `rgba(102, 126, 234, ${alpha})`;
-        ctx.lineWidth = 1.5 + activation * 2.5;
+        ctx.strokeStyle = `rgba(110, 123, 242, ${alpha})`;
+        ctx.lineWidth = 1 + activation * 1.5;
         ctx.beginPath();
         ctx.moveTo(conn.from.x * width, conn.from.y * height);
         ctx.lineTo(conn.to.x * width, conn.to.y * height);
@@ -186,8 +186,8 @@ export default function NeuralNetworkViz({ isProcessing, metadata, processingSta
 
         // Add glow to active connections
         if (activation > 0.5) {
-          ctx.strokeStyle = `rgba(102, 126, 234, ${activation * 0.3})`;
-          ctx.lineWidth = 4 + activation * 3;
+          ctx.strokeStyle = `rgba(110, 123, 242, ${activation * 0.2})`;
+          ctx.lineWidth = 2 + activation * 1.5;
           ctx.beginPath();
           ctx.moveTo(conn.from.x * width, conn.from.y * height);
           ctx.lineTo(conn.to.x * width, conn.to.y * height);
@@ -202,11 +202,11 @@ export default function NeuralNetworkViz({ isProcessing, metadata, processingSta
         const alpha = 0.2 + node.activation;
 
         // Outer glow (larger when active)
-        const glowSize = node.radius * (2 + node.activation * 2);
+        const glowSize = node.radius * (1.5 + node.activation * 1);
         const gradient = ctx.createRadialGradient(x, y, 0, x, y, glowSize);
-        gradient.addColorStop(0, `rgba(102, 126, 234, ${alpha})`);
-        gradient.addColorStop(0.3, `rgba(118, 75, 162, ${alpha * 0.6})`);
-        gradient.addColorStop(1, 'rgba(102, 126, 234, 0)');
+        gradient.addColorStop(0, `rgba(110, 123, 242, ${alpha * 0.7})`);
+        gradient.addColorStop(0.5, `rgba(110, 123, 242, ${alpha * 0.2})`);
+        gradient.addColorStop(1, 'rgba(110, 123, 242, 0)');
 
         ctx.fillStyle = gradient;
         ctx.beginPath();
@@ -215,9 +215,9 @@ export default function NeuralNetworkViz({ isProcessing, metadata, processingSta
 
         // Inner node (brighter when active)
         const innerGradient = ctx.createRadialGradient(x, y, 0, x, y, node.radius);
-        innerGradient.addColorStop(0, `rgba(255, 255, 255, ${alpha * 0.9})`);
-        innerGradient.addColorStop(0.7, `rgba(102, 126, 234, ${alpha})`);
-        innerGradient.addColorStop(1, `rgba(102, 126, 234, ${alpha * 0.8})`);
+        innerGradient.addColorStop(0, `rgba(255, 255, 255, ${alpha * 0.8})`);
+        innerGradient.addColorStop(0.6, `rgba(110, 123, 242, ${alpha * 0.9})`);
+        innerGradient.addColorStop(1, `rgba(110, 123, 242, ${alpha * 0.6})`);
 
         ctx.fillStyle = innerGradient;
         ctx.beginPath();
@@ -226,8 +226,8 @@ export default function NeuralNetworkViz({ isProcessing, metadata, processingSta
 
         // Highlight very active nodes with ring
         if (node.activation > 0.6) {
-          ctx.strokeStyle = `rgba(255, 255, 255, ${node.activation * 0.7})`;
-          ctx.lineWidth = 2.5;
+          ctx.strokeStyle = `rgba(255, 255, 255, ${node.activation * 0.5})`;
+          ctx.lineWidth = 1.5;
           ctx.beginPath();
           ctx.arc(x, y, node.radius + 3, 0, Math.PI * 2);
           ctx.stroke();
@@ -259,16 +259,9 @@ export default function NeuralNetworkViz({ isProcessing, metadata, processingSta
 
         // Glow effect when active
         if (isActive && isProcessing) {
-          // Outer glow
-          ctx.shadowBlur = 20;
-          ctx.shadowColor = 'rgba(102, 126, 234, 0.8)';
-          ctx.fillStyle = 'rgba(255, 255, 255, 1)';
-          ctx.fillText(layer.name, x, y);
-
-          // Inner bright glow
-          ctx.shadowBlur = 10;
-          ctx.shadowColor = 'rgba(118, 75, 162, 0.9)';
-          ctx.fillStyle = 'rgba(255, 255, 255, 1)';
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = 'rgba(110, 123, 242, 0.6)';
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
           ctx.fillText(layer.name, x, y);
 
           // Reset shadow

@@ -14,41 +14,38 @@
 
 .network-stats {
   position: absolute;
-  bottom: 1rem;
+  bottom: var(--space-4);
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 1.5rem;
-  padding: 1rem 1.5rem;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 18px;
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2),
-              inset 0 0 20px rgba(255, 255, 255, 0.05);
+  gap: var(--space-6);
+  padding: var(--space-3) var(--space-5);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
 }
 
 .stat-item {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 2px;
   align-items: center;
 }
 
 .stat-label {
-  font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 500;
 }
 
 .stat-value {
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.95);
+  font-size: var(--text-md);
+  color: var(--color-text-primary);
   font-weight: 600;
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-mono);
 }
 
 /* Technical Details Panel (Geek Mode) */
@@ -62,14 +59,11 @@
   max-height: 70vh;
   display: flex;
   flex-direction: column;
-  background: rgba(10, 10, 15, 0.98);
-  backdrop-filter: blur(30px) saturate(180%);
-  -webkit-backdrop-filter: blur(30px) saturate(180%);
-  border: 3px solid rgba(102, 126, 234, 0.5);
-  border-radius: 20px;
-  box-shadow: 0 12px 48px 0 rgba(31, 38, 135, 0.6),
-              inset 0 0 30px rgba(102, 126, 234, 0.2);
-  animation: fadeInCenter 0.3s ease-out;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-active);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  animation: fadeInCenter 0.2s ease-out;
   pointer-events: auto;
   z-index: 100;
 }
@@ -77,8 +71,8 @@
 .technical-details-content {
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 1.5rem;
-  padding-right: 1rem;
+  padding: var(--space-6);
+  padding-right: var(--space-4);
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
@@ -92,7 +86,7 @@
 @keyframes fadeInCenter {
   from {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.95);
+    transform: translate(-50%, -50%) scale(0.97);
   }
   to {
     opacity: 1;
@@ -101,7 +95,7 @@
 }
 
 .tech-section {
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--space-6);
   user-select: text;
   -webkit-user-select: text;
 }
@@ -111,198 +105,184 @@
 }
 
 .tech-section-title {
-  font-size: 0.9rem;
+  font-size: var(--text-sm);
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
-  margin: 0 0 0.75rem 0;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(102, 126, 234, 0.2);
-  letter-spacing: 0.5px;
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-3) 0;
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border-default);
+  letter-spacing: 0.3px;
 }
 
 .model-badge {
   display: inline-block;
-  padding: 0.4rem 0.85rem;
-  background: rgba(102, 126, 234, 0.15);
-  border: 1px solid rgba(102, 126, 234, 0.3);
-  border-radius: 8px;
-  font-size: 0.75rem;
-  color: rgba(102, 126, 234, 1);
-  font-family: 'Courier New', monospace;
+  padding: var(--space-1) var(--space-3);
+  background: var(--color-accent-muted);
+  border: 1px solid var(--color-accent-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  color: var(--color-accent);
+  font-family: var(--font-mono);
   font-weight: 600;
-  margin-bottom: 0.75rem;
-  letter-spacing: 0.3px;
+  margin-bottom: var(--space-3);
 }
 
 .tech-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
 }
 
 .tech-item {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  gap: 2px;
+  padding: var(--space-3);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
 }
 
 .tech-label {
-  font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 500;
 }
 
 .tech-value {
-  font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.95);
+  font-size: var(--text-base);
+  color: var(--color-text-primary);
   font-weight: 600;
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-mono);
 }
 
 .tech-value.confidence.high {
-  color: rgba(102, 234, 126, 0.95);
+  color: var(--color-success);
 }
 
 .tech-value.confidence.medium {
-  color: rgba(234, 202, 102, 0.95);
+  color: var(--color-warning);
 }
 
 .tech-value.confidence.low {
-  color: rgba(234, 102, 102, 0.95);
+  color: var(--color-error);
 }
 
 .vector-sample {
-  margin-top: 1rem;
-  padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  margin-top: var(--space-4);
+  padding: var(--space-3);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
 }
 
 .vector-values {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
 }
 
 .vector-val {
-  font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
-  background: rgba(102, 126, 234, 0.2);
-  border: 1px solid rgba(102, 126, 234, 0.3);
-  border-radius: 4px;
-  color: rgba(255, 255, 255, 0.9);
-  font-family: 'Courier New', monospace;
+  font-size: var(--text-xs);
+  padding: 2px var(--space-2);
+  background: var(--color-accent-muted);
+  border: 1px solid var(--color-accent-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  font-family: var(--font-mono);
 }
 
 .retrieval-docs {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-3);
 }
 
 .doc-card {
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 10px;
-  transition: all 0.2s ease;
+  padding: var(--space-4);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-default);
 }
 
 .doc-card:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(102, 126, 234, 0.4);
+  border-color: var(--color-border-hover);
 }
 
 .doc-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--space-2);
 }
 
 .doc-id {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.6);
-  font-family: 'Courier New', monospace;
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  font-family: var(--font-mono);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .doc-score {
-  font-size: 0.75rem;
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
+  font-size: var(--text-xs);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
   font-weight: 600;
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-mono);
 }
 
 .doc-score.high {
-  background: rgba(102, 234, 126, 0.2);
-  color: rgba(102, 234, 126, 1);
-  border: 1px solid rgba(102, 234, 126, 0.4);
+  background: rgba(62, 207, 142, 0.15);
+  color: var(--color-success);
+  border: 1px solid rgba(62, 207, 142, 0.3);
 }
 
 .doc-score.medium {
-  background: rgba(234, 202, 102, 0.2);
-  color: rgba(234, 202, 102, 1);
-  border: 1px solid rgba(234, 202, 102, 0.4);
+  background: rgba(240, 192, 65, 0.15);
+  color: var(--color-warning);
+  border: 1px solid rgba(240, 192, 65, 0.3);
 }
 
 .doc-score.low {
-  background: rgba(234, 102, 102, 0.2);
-  color: rgba(234, 102, 102, 1);
-  border: 1px solid rgba(234, 102, 102, 0.4);
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--color-error);
+  border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 .doc-snippet {
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--color-text-secondary);
   margin: 0;
 }
 
 /* Scrollbar for technical panel */
 .technical-details-content::-webkit-scrollbar {
-  width: 16px;
+  width: 8px;
 }
 
 .technical-details-content::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 8px;
-  margin: 8px 2px;
+  background: transparent;
+  margin: var(--space-2);
 }
 
 .technical-details-content::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
-  border-radius: 8px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
-  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
-  min-height: 40px;
+  background: var(--color-text-tertiary);
+  border-radius: 4px;
 }
 
 .technical-details-content::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 1) 0%, rgba(118, 75, 162, 1) 100%);
-  background-clip: padding-box;
-  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5), 0 0 12px rgba(102, 126, 234, 0.6);
-}
-
-.technical-details-content::-webkit-scrollbar-thumb:active {
-  background: linear-gradient(135deg, rgba(118, 75, 162, 1) 0%, rgba(102, 126, 234, 1) 100%);
-  background-clip: padding-box;
+  background: var(--color-text-secondary);
 }
 
 /* Firefox scrollbar */
 .technical-details-content {
-  scrollbar-width: auto;
-  scrollbar-color: rgba(102, 126, 234, 0.9) rgba(0, 0, 0, 0.5);
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-text-tertiary) transparent;
 }
