@@ -24,11 +24,18 @@ load_dotenv(override=True)
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 
+# Model configuration is centralized in config.py so the API and the embedding
+# uploader (embeddings_pinecone.py) always use the same models and dimension.
+from config import (
+    EMBEDDING_MODEL,
+    EMBEDDING_DIMENSION,
+    GENERATION_MODEL,
+    GENERATION_MAX_COMPLETION_TOKENS,
+    GENERATION_REASONING_EFFORT,
+)
+
 # Pinecone index
 INDEX_NAME = "nicobot-portfolio"
-EMBEDDING_MODEL = "text-embedding-3-small"
-EMBEDDING_DIMENSION = 1536
-GENERATION_MODEL = "gpt-4o-mini"
 LINKEDIN_URL = "https://www.linkedin.com/in/nico-bourel-09237a216/"
 GITHUB_URL = "https://github.com/shinic1"
 CONTACT_EMAIL = "nico.bourel@swedev.online"
@@ -96,6 +103,29 @@ app.add_middleware(
     expose_headers=["*"],  # Expose all response headers
 )
 
+class ChatMessage(BaseModel):
+    """A single prior conversation turn, used for context-aware retrieval and generation."""
+    role: str
+    # Generous hard ceiling guards against abuse; normal replies are truncated (not
+    # rejected) in the validator below so a long prior turn never 422s the next request.
+    content: str = Field(..., max_length=16000)
+
+    @field_validator('role')
+    @classmethod
+    def validate_role(cls, v: str):
+        if v not in ('user', 'assistant'):
+            raise ValueError("role must be 'user' or 'assistant'")
+        return v
+
+    @field_validator('content')
+    @classmethod
+    def sanitize_content(cls, v: str):
+        # Strip control characters but keep normal text, then bound the length so
+        # prompts stay reasonable without ever rejecting a slightly-long turn.
+        v = re.sub(r'[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f]', '', v)
+        return v[:8000]
+
+
 class ChatRequest(BaseModel):
     question: str = Field(
         ...,
@@ -103,6 +133,16 @@ class ChatRequest(BaseModel):
         max_length=500,
         description="User's question (1-500 characters)"
     )
+    history: list[ChatMessage] = Field(
+        default_factory=list,
+        description="Recent conversation turns for context (most recent last)"
+    )
+
+    @field_validator('history')
+    @classmethod
+    def cap_history(cls, v: list):
+        # Keep only the most recent turns to bound prompt size
+        return v[-12:]
 
     @field_validator('question')
     @classmethod
@@ -186,7 +226,8 @@ def embed_query(query: str) -> tuple[list[float], EmbeddingStats]:
     start_time = time.time()
     response = openai_client.embeddings.create(
         model=EMBEDDING_MODEL,
-        input=[query]
+        input=[query],
+        dimensions=EMBEDDING_DIMENSION
     )
     embedding = response.data[0].embedding
     end_time = time.time()
@@ -378,37 +419,30 @@ def extract_topics_from_docs(retrieval_matches: list) -> list[str]:
 # Rule-based suggestion mappings: short, concise follow-up questions
 TOPIC_SUGGESTIONS = {
     'experience': [
-        "What's his current role?",
-        "Tell me about his internships",
-        "What has he worked on?",
-        "What technologies does he use?",
-        "Where has he worked before?"
+        "What does he do at AnSer AI?",
+        "How did he go from intern to full-time?",
+        "Tell me about the recruiting platform he built",
+        "What network or infrastructure work has he done?",
+        "What has he shipped to production?"
     ],
     'skills': [
         "What languages does he know?",
         "Does he know React?",
-        "What's his strongest skill?",
-        "What frameworks can he use?",
-        "Is he good with databases?"
+        "Has he worked with voice AI?",
+        "Is he comfortable with databases?",
+        "What about infrastructure and security?"
     ],
     'education': [
-        "When does he graduate?",
-        "What's he studying?",
-        "Where does he go to school?",
+        "What did he study?",
+        "What's his degree?",
+        "Where did he go to school?",
         "What's his major?",
         "Tell me about his education"
     ],
-    'leadership': [
-        "Does he have leadership experience?",
-        "What organizations is he in?",
-        "Tell me about his involvement",
-        "What roles has he held?"
-    ],
-    'interests': [
-        "What are his hobbies?",
-        "What's he passionate about?",
-        "What does he do for fun?",
-        "Tell me about his interests"
+    'availability': [
+        "Where is he based?",
+        "Is he open to relocation?",
+        "What roles is he looking for?"
     ],
     'contact': [
         "How can I reach him?",
@@ -417,25 +451,24 @@ TOPIC_SUGGESTIONS = {
         "Can I see his GitHub?"
     ],
     'project': [
-        "Tell me about Jetter",
-        "What is qa-pipeline?",
-        "What did he build at AnSer?",
-        "Which project uses Kafka?",
-        "Which projects are personal?"
+        "Tell me about NicoBot",
+        "What is the Jarvis assistant?",
+        "How does the portfolio RAG work?",
+        "What's his most technical project?",
+        "What has he built outside of work?"
     ],
     'ownership': [
         "Which projects are personal?",
-        "Which projects are org work?",
-        "What can he show publicly?",
-        "What did he build at AnSer?"
+        "What did he build at AnSer AI?",
+        "What can he show publicly?"
     ]
 }
 
 # Default suggestions for when no specific topics are retrieved
 DEFAULT_SUGGESTIONS = [
-    "Tell me about Jetter",
-    "What did he build at AnSer?",
-    "Which projects are personal vs org?"
+    "Tell me about NicoBot",
+    "What did he build at AnSer AI?",
+    "What is the Jarvis assistant?"
 ]
 
 def generate_follow_up_suggestions(query: str, reply: str, retrieval_matches: list) -> list[Panel]:
@@ -490,59 +523,70 @@ def generate_follow_up_suggestions(query: str, reply: str, retrieval_matches: li
 
     return panels
 
-def generate_response(query: str, context_docs: list[str], has_contact_intent: bool = False) -> tuple[str, GenerationStats]:
-    """Generate response using GPT-4o-mini with retrieved context and return stats."""
+def build_retrieval_query(query: str, history: list | None = None) -> str:
+    """Combine the current question with recent user turns so follow-ups like
+    "tell me how he applied it" retrieve the right context instead of nothing."""
+    history = history or []
+    prior_user_turns = [m.content for m in history if getattr(m, "role", None) == "user"][-2:]
+    combined = " ".join(prior_user_turns + [query]).strip()
+    return combined[:1000]
+
+def generate_response(query: str, context_docs: list[str], has_contact_intent: bool = False, history: list | None = None) -> tuple[str, GenerationStats]:
+    """Generate a grounded response with the configured chat model and return stats."""
     import time
     start_time = time.time()
 
+    history = history or []
     context = "\n\n".join(context_docs)
 
-    system_prompt = """You are Nico Bourel's portfolio assistant. Your role is to help visitors learn about Nico's background, skills, projects, and experience.
+    system_prompt = """You are Nico Bourel's portfolio assistant, a friendly guide that helps recruiters and hiring managers learn about Nico's background, skills, projects, and experience.
 
-Use ONLY the provided context to answer questions.
+Ground every answer in the provided context and the conversation so far. Do not invent details the context does not support.
 
-IMPORTANT: If the user's message is very short (like "yes", "ok", "sure", "thanks", "cool") or is clearly a conversational acknowledgment rather than a real question, respond naturally and offer to help with something specific about Nico. Examples:
-- "Great! Is there anything specific you'd like to know about Nico's projects?"
-- "Awesome! Feel free to ask me about Nico's skills or experience."
+CONVERSATION AWARENESS: Use the conversation history to resolve references. If the user asks a short follow-up or says "it", "that", "those", "how did he apply it", and so on, work out what they mean from the previous turns and answer it directly. A follow-up that builds on something already discussed is ALWAYS on-topic - never refuse it.
 
-CONTACT QUESTIONS: If the user asks about LinkedIn, GitHub, email, or how to contact Nico, respond warmly and mention that you've provided a clickable link below. Examples:
-- "Sure! I've provided Nico's LinkedIn profile below - just click to connect with him!"
-- "You can find Nico on GitHub! I've included a link to his profile below."
-- "I've shared Nico's contact information below. Feel free to reach out!"
+SCOPE: You only discuss Nico - his work, skills, projects, education, and how to reach him. Only if a question is clearly unrelated to Nico (general trivia, coding help, other people) give a brief, friendly redirect back to what you can share about Nico. Never use that redirect for a genuine question about Nico; if a specific detail isn't in the context, share the closest relevant thing you do know instead.
 
-If the answer to a real question is not in the context, respond with a friendly refusal that redirects to what you DO know about Nico. Choose from variations like:
-- "I can only talk about Nico and his work — want to hear about his technical skills or experience?"
-- "I'm not trained on that, but I can tell you about Nico's background in Computer Science instead."
-- "That's outside my knowledge, but I'd love to tell you about Nico's education or professional experience."
+SHORT REPLIES: If the user just acknowledges ("yes", "ok", "sure", "thanks", "cool"), don't repeat your previous message. Either deliver what you just offered or suggest a specific new thing to explore about Nico.
 
-Keep the recruiter engaged. Be friendly, concise, and helpful. When discussing projects, highlight the technologies and skills involved."""
+CONTACT: If the user asks about LinkedIn, GitHub, email, the resume, or how to reach Nico, respond warmly and point them to the clickable link shown below your message.
+
+STYLE: Be friendly, concise, and specific. Lead with the answer. When discussing projects or experience, highlight concrete technologies and any outcomes or metrics. Vary your wording - avoid repeating the same canned sentence."""
 
     # Add hint if this is a contact question
     contact_hint = ""
     if has_contact_intent:
-        contact_hint = "\n\nNOTE: This is a contact/social media question. You MUST respond positively and mention the clickable link provided below. DO NOT say you can't provide this information."
+        contact_hint = "\n\nNOTE: This is a contact/social question. Respond positively and mention the clickable link provided below. Do not say you can't share this."
 
-    user_prompt = f"""Context:
+    user_prompt = f"""Information about Nico:
 {context}
 
-Question: {query}{contact_hint}
+Using the information above and our conversation so far, answer this question: {query}{contact_hint}"""
 
-Answer based only on the context above:"""
+    # Rebuild the conversation for the model: system prompt, recent turns, then the
+    # current question (with retrieved context attached).
+    messages = [{"role": "system", "content": system_prompt}]
+    for turn in history[-6:]:
+        role = getattr(turn, "role", None)
+        content = getattr(turn, "content", None)
+        if role in ("user", "assistant") and content:
+            messages.append({"role": role, "content": content})
+    messages.append({"role": "user", "content": user_prompt})
 
+    # GPT-5 generation: use max_completion_tokens (not max_tokens), leave temperature
+    # at its default, and pass reasoning_effort via extra_body so it works regardless
+    # of the installed SDK version.
     response = openai_client.chat.completions.create(
         model=GENERATION_MODEL,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ],
-        temperature=0.7,
-        max_tokens=500
+        messages=messages,
+        max_completion_tokens=GENERATION_MAX_COMPLETION_TOKENS,
+        extra_body={"reasoning_effort": GENERATION_REASONING_EFFORT}
     )
 
     end_time = time.time()
     time_ms = int((end_time - start_time) * 1000)
 
-    reply = response.choices[0].message.content
+    reply = response.choices[0].message.content or "Sorry, I couldn't generate a response just now - could you rephrase that?"
     prompt_tokens = response.usage.prompt_tokens if response.usage else 0
     completion_tokens = response.usage.completion_tokens if response.usage else 0
     total_tokens = response.usage.total_tokens if response.usage else 0
@@ -562,9 +606,9 @@ Answer based only on the context above:"""
 async def chat(request: Request, chat_request: ChatRequest):
     """
     Main chat endpoint that handles RAG flow:
-    1. Embed user question
+    1. Embed user question (context-aware, using recent conversation history)
     2. Retrieve relevant documents from Pinecone
-    3. Generate response using GPT-4o-mini
+    3. Generate response using the configured chat model
     Returns response with metadata about each pipeline stage
     """
     if not chat_request.question.strip():
@@ -588,8 +632,16 @@ async def chat(request: Request, chat_request: ChatRequest):
                 panels=panels + suggestion_panels
             )
 
-        # Step 1: Generate embedding
-        query_embedding, embedding_stats = embed_query(chat_request.question)
+        # Drop a trailing history turn identical to the current question so a client
+        # that echoes the current turn into history doesn't cause it to be sent twice.
+        convo_history = chat_request.history
+        if (convo_history and convo_history[-1].role == "user"
+                and convo_history[-1].content.strip() == chat_request.question.strip()):
+            convo_history = convo_history[:-1]
+
+        # Step 1: Generate embedding (context-aware so follow-ups retrieve correctly)
+        retrieval_query = build_retrieval_query(chat_request.question, convo_history)
+        query_embedding, embedding_stats = embed_query(retrieval_query)
 
         # Step 2: Retrieve relevant documents
         relevant_docs, retrieval_matches, retrieval_time_ms = retrieve_relevant_docs(query_embedding, k=3)
@@ -621,8 +673,10 @@ async def chat(request: Request, chat_request: ChatRequest):
         for panel in panels:
             print(f"DEBUG: Panel type={panel.type}, title={panel.title}")
 
-        # Step 4: Generate response with context about whether we're showing contact panels
-        reply, generation_stats = generate_response(chat_request.question, relevant_docs, has_contact_intent)
+        # Step 4: Generate response with conversation history and contact context
+        reply, generation_stats = generate_response(
+            chat_request.question, relevant_docs, has_contact_intent, convo_history
+        )
 
         # Step 5: Generate contextual follow-up suggestions
         suggestion_panels = generate_follow_up_suggestions(chat_request.question, reply, retrieval_matches)
@@ -668,8 +722,12 @@ async def warmup():
         raise HTTPException(status_code=503, detail="Pinecone index is not ready")
 
     start_time = time.time()
+    # Cosine similarity is undefined for an all-zero vector (some Pinecone versions
+    # reject it), so warm with a tiny non-zero vector instead.
+    warm_vector = [0.0] * EMBEDDING_DIMENSION
+    warm_vector[0] = 0.001
     pinecone_index.query(
-        vector=[0.0] * EMBEDDING_DIMENSION,
+        vector=warm_vector,
         top_k=1,
         include_metadata=False
     )

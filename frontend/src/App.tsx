@@ -88,7 +88,7 @@ function App() {
         "Tell me about his work",
         "What's his current role?",
         "What has he worked on?",
-        "Tell me about his internships",
+        "Tell me about his internship",
         "What technologies does he use?"
       ]
     },
@@ -107,9 +107,9 @@ function App() {
       category: 'education',
       currentIndex: 0,
       questions: [
-        "Where does he study?",
-        "What's he studying?",
-        "When does he graduate?",
+        "What did he study?",
+        "What's his degree?",
+        "Where did he go to school?",
         "What's his major?",
         "Tell me about his education"
       ]
