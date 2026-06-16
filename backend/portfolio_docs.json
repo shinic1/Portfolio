@@ -1,70 +1,82 @@
 [
   {
-    "id": "experience_1",
-    "content": "Work Experience: Nico is an AI Engineering Intern at AnSer in Green Bay, Wisconsin, starting in May 2025. He built an internal applicant tracking system with automated screening calls, candidate message tracking, and Microsoft Bookings integration to streamline recruiting workflows. He also developed 15 automated QA scripts for human agent performance evaluation across roughly 20,000 calls and built enterprise voice-agent demos using Vapi and ElevenLabs."
+    "id": "summary_1",
+    "content": "About Nico Bourel: Nico is an applied AI engineer who builds recruitment workflow automation, LLM-based quality evaluation systems, enterprise voice-agent demos, and full-stack AI applications. He converted from an engineering internship into a full-time role at AnSer AI. He is comfortable across Python, TypeScript, FastAPI, React, OpenAI integrations, and network administration, and is targeting Applied AI Engineer, Junior Backend Engineer, and Junior Full-Stack Engineer roles."
   },
   {
-    "id": "experience_2",
-    "content": "Work Experience: Nico worked as a Front Desk Assistant for Housing and Residential Education at the University of Wisconsin - Green Bay from October 2023 to May 2025. He assisted students and parents with housing and application-related questions, coordinated after-hours emergency dispatch communication for campus housing, and resolved resident concerns through front-desk support."
+    "id": "availability_1",
+    "content": "Location and Availability: Nico is based in Green Bay, Wisconsin and is open to relocation, with particular interest in Miami and South Florida. He is looking for Applied AI Engineer, Junior Backend Engineer, and Junior Full-Stack Engineer roles."
   },
   {
-    "id": "experience_3",
-    "content": "Work Experience: Nico worked as an ATS Technician at the University of Wisconsin - Green Bay from January 2023 to October 2023. He provided frontline technical support for classroom and faculty technology issues, performed routine room technology checks, and managed checkout and support of campus technology equipment."
+    "id": "experience_anser_overview",
+    "content": "Work Experience - AnSer AI (Green Bay, WI): Nico is an AI Engineer at AnSer AI (June 2026 to present) after converting from his AI Engineering Internship (May 2025 to May 2026). He works on a four-person, startup-style team and delivers AI products from prototype through production, supporting customer demos, deployments, and internal operations."
   },
   {
-    "id": "education_1",
-    "content": "Education: Nico Bourel is pursuing a Bachelor of Science in Computer Science at the University of Wisconsin - Green Bay in Green Bay, Wisconsin. His expected graduation date is May 2026."
+    "id": "experience_anser_qa",
+    "content": "Work Experience - AnSer AI, LLM evaluation: Nico improved grading accuracy across roughly 20,000 calls by contributing to 26 LLM-based performance-scoring scripts that evaluate agent performance and call quality."
   },
   {
-    "id": "skills_1",
-    "content": "Technical Skills: Nico's primary programming languages are Python, TypeScript, Java, and JavaScript."
+    "id": "experience_anser_ats",
+    "content": "Work Experience - AnSer AI, recruiting platform: Nico increased recruitment efficiency for 30+ monthly applicants by building and self-hosting a production applicant tracking system (ATS). It includes LiveKit-powered screening calls, candidate message tracking, secure database tables, a customized Cal.com fork for scheduling, a Cloudflare Tunnel, and Coolify-managed production workflows."
   },
   {
-    "id": "skills_2",
-    "content": "Technical Skills: Nico regularly works with Claude Code, Codex, GitHub, Twilio, Jira, Google Cloud Platform, and Docker."
+    "id": "experience_anser_voice",
+    "content": "Work Experience - AnSer AI, voice agents: Nico built and presented client-specific voice-agent demos using Vapi and ElevenLabs, adding human-in-the-loop routing so callers can transfer to a real person at any point in the conversation."
   },
   {
-    "id": "skills_3",
-    "content": "Technical Skills: Nico works with REST APIs, FastAPI, Next.js, Node.js, Prisma, and PostgreSQL. His core concepts include AI workflow automation, prompt engineering, system integration, and QA automation."
+    "id": "experience_anser_network",
+    "content": "Work Experience - AnSer AI, network administration: Nico reduced network-change turnaround from a weekly IT processing cycle to immediate resolution by managing Palo Alto firewall changes, GlobalProtect VPN access, and connectivity issues."
   },
   {
-    "id": "skills_4",
-    "content": "Technical Themes: Across recent projects, Nico has worked on voice AI, retrieval-augmented applications, distributed processing, recruiter workflow automation, and call quality analysis. His stack across projects includes FastAPI, Next.js, PostgreSQL, Kafka, Docker, Kubernetes, OpenAI, Pinecone, Twilio, Vapi, and SwiftUI."
+    "id": "experience_housing",
+    "content": "Work Experience - University of Wisconsin-Green Bay, Housing and Residential Education (Front Desk Assistant, October 2023 to May 2025): Nico supported approximately 3,500 residents and resolved about 50 housing, application, and operational inquiries each week. He triaged 100+ after-hours incidents per semester and coordinated emergency response with campus dispatch, and trained five employees on resident support, emergency procedures, and front-desk operations."
   },
   {
-    "id": "project_jetter",
-    "content": "Project: Jetter. Ownership: Personal project. Jetter is a Swift and SwiftUI iOS app that helps travelers reduce jet lag by recommending the ideal sleep timing around long-haul flights. It supports live flight lookup and manual itinerary planning, uses timezone-aware scheduling logic, and includes airport search, meal timing guidance, readiness scoring, pre-flight preparation guidance, and shareable trip summaries."
+    "id": "experience_academic_tech",
+    "content": "Work Experience - University of Wisconsin-Green Bay, Academic Technology Services (Technician, January 2023 to October 2023): Nico supported 50+ classrooms and resolved 10+ hardware, audiovisual, and connectivity incidents each month. He maintained 95% classroom readiness through preventive checks and pre-class troubleshooting, and managed checkout, inventory, and user support for 100+ technology assets."
   },
   {
-    "id": "project_portfolio",
-    "content": "Project: AI portfolio website. Ownership: Personal project. Nico built a full-stack portfolio platform with a React and Vite frontend, a FastAPI backend, and OpenAI plus Pinecone retrieval-augmented responses. The system includes recruiter-friendly quick links, input validation, rate limiting, and a chatbot that answers questions about his experience and projects."
+    "id": "skills_languages",
+    "content": "Technical Skills - Languages: Nico programs in Python, TypeScript, Java, JavaScript, and Swift."
   },
   {
-    "id": "project_qa_pipeline",
-    "content": "Project: qa-pipeline. Ownership: Personal project. qa-pipeline is a distributed call center quality assurance system built with Next.js, FastAPI, Python workers, Apache Kafka, PostgreSQL, MinIO, Docker, and Kubernetes or K3s. It ingests audio, runs transcription and diarization, scores calls with OpenAI models, and displays results through a dashboard, making it one of Nico's clearest examples of Kafka and Kubernetes experience."
+    "id": "skills_backend_data",
+    "content": "Technical Skills - Backend and Data: Nico works with FastAPI, Node.js, REST APIs, WebSockets, Prisma, PostgreSQL, and the Pinecone vector database."
   },
   {
-    "id": "project_qa_evaluations",
-    "content": "Project: qa-evaluations. Ownership: Org project at AnSer-AI-Solutions. qa-evaluations is a monorepo for automated call quality assessment where individual evaluations run as independent services or consumers instead of a single monolith. Nico's work aligns with building automated QA scripts, AI scoring workflows, batch and API evaluation paths, and scalable quality analysis for call center operations."
+    "id": "skills_frontend_mobile",
+    "content": "Technical Skills - Frontend and Mobile: Nico builds web interfaces with React, Next.js, and Vite, and iOS interfaces with SwiftUI. React is a core, frequently used skill - yes, Nico knows React well."
   },
   {
-    "id": "project_application_assistant_dashboard",
-    "content": "Project: Application Assistant Dashboard. Ownership: Org project at AnSer-AI-Solutions. This is an AI recruiting platform that automates candidate screening through voice calls, SMS communication, and interview scheduling. The system uses Next.js and React, TypeScript, PostgreSQL, Prisma, Vapi AI, Twilio, TidyCal, and OpenAI-backed resume parsing to manage candidates through the hiring funnel."
+    "id": "skills_ai_automation",
+    "content": "Technical Skills - AI and Automation: Nico works with OpenAI models, OpenCV, prompt engineering, retrieval-augmented generation (RAG), LLM-based evaluation, AI workflow automation, human-in-the-loop routing, MCP servers, LiveKit, Vapi, and ElevenLabs."
   },
   {
-    "id": "project_application_assistant_dashboard_cron",
-    "content": "Project: Application Assistant automation layer. Ownership: Org project at AnSer-AI-Solutions. The recruiting platform includes a separate background automation service that schedules calls, syncs candidate communications and bookings, processes SMS flows, and keeps hiring operations moving without manual follow-up. This work highlights Nico's experience with operational automation and multi-service system design."
+    "id": "skills_infra_security",
+    "content": "Technical Skills - Infrastructure and Security: Nico has hands-on experience with Palo Alto Networks firewalls, GlobalProtect VPN, Google Cloud Platform (GCP), Railway, Docker, Coolify, Cloudflare Tunnel, network administration, access control, and troubleshooting."
+  },
+  {
+    "id": "skills_tools",
+    "content": "Technical Skills - Tools and Platforms: Nico uses GitHub, Twilio, Jira, Microsoft Bookings, Cal.com, Claude Code, and Codex."
+  },
+  {
+    "id": "project_nicobot",
+    "content": "Project - NicoBot AI Portfolio (personal project): A recruiter-facing AI portfolio, live at https://swedev.online, with a React and TypeScript interface (built with Vite) backed by a FastAPI service. It runs a retrieval-augmented generation (RAG) pipeline that embeds questions, retrieves verified facts from Pinecone, and generates grounded OpenAI responses. Nico exposed retrieval and generation telemetry and protected the public API with input validation, sanitization, and rate limiting. Tech stack: React, TypeScript, Vite, FastAPI, OpenAI, Pinecone, Vercel."
+  },
+  {
+    "id": "project_jarvis",
+    "content": "Project - Jarvis Personal AI Assistant (personal project): An event-driven, multimodal assistant with wake-word detection, voice interaction, face-based presence tracking, persistent memory, and OpenAI tool calling. Nico developed custom ReSpeaker microphone-array firmware for room-based interaction with a locally deployed Linux assistant, and built a real-time FastAPI and WebSocket API plus a React dashboard for assistant state, conversations, weather, news, flights, and Spotify. He orchestrated asynchronous vision, audio, LLM, scheduling, and shutdown services. Tech stack: Python, Linux, FastAPI, React, TypeScript, OpenAI, OpenCV, WebSockets."
   },
   {
     "id": "ownership_1",
-    "content": "Project Ownership: Personal projects highlighted in Nico's portfolio include Jetter, qa-pipeline, and the portfolio website itself. These are projects he owns directly under his personal GitHub or built independently as portfolio work."
+    "content": "Project Ownership: Nico's personal projects are the NicoBot AI Portfolio (live at https://swedev.online) and the Jarvis Personal AI Assistant. His professional work at AnSer AI - the applicant tracking system, the 26 LLM-based call-scoring scripts, and the Vapi and ElevenLabs voice-agent demos - is company work he can discuss at a public level rather than personal side projects."
   },
   {
-    "id": "ownership_2",
-    "content": "Project Ownership: Org projects highlighted in Nico's portfolio include qa-evaluations and Application Assistant Dashboard at AnSer-AI-Solutions. Nico can discuss the product goals, his contributions, and the stack at a safe public level, but they are not personal side projects."
+    "id": "education_1",
+    "content": "Education: Nico Bourel holds a Bachelor of Science in Computer Science from the University of Wisconsin-Green Bay in Green Bay, Wisconsin."
   },
   {
     "id": "contact_1",
-    "content": "Contact Information: Email Nico at nico.bourel@swedev.online, call +1 (313) 722-0915, visit https://swedev.online, view GitHub at https://github.com/shinic1, and connect on LinkedIn at https://www.linkedin.com/in/nico-bourel-09237a216/."
+    "content": "Contact Information: Email Nico at nico.bourel@swedev.online, call +1 (313) 722-0915, visit his website at https://swedev.online, view his public GitHub profile at https://github.com/shinic1, and connect on LinkedIn at https://www.linkedin.com/in/nico-bourel-09237a216/."
   }
 ]

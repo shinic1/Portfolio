@@ -36,6 +36,7 @@ interface Message {
   content: string;
   metadata?: NetworkMetadata;
   panels?: Panel[];
+  isError?: boolean;
 }
 
 export interface ChatBoxRef {
@@ -71,6 +72,14 @@ const ChatBox = forwardRef<ChatBoxRef, ChatBoxProps>(({ onMetadataUpdate, onStag
   const sendMessage = async (question: string) => {
     if (!question.trim() || isLoading) return;
 
+    // Capture the prior turns (before adding this question) so the backend can
+    // resolve follow-ups like "tell me how he applied it". Skip transient error
+    // bubbles, send role/content only, and bound length to the backend's limit.
+    const history = messages
+      .filter(m => !m.isError)
+      .slice(-10)
+      .map(({ role, content }) => ({ role, content: content.slice(0, 8000) }));
+
     const userMessage: Message = { role: 'user', content: question };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
@@ -89,7 +98,7 @@ const ChatBox = forwardRef<ChatBoxRef, ChatBoxProps>(({ onMetadataUpdate, onStag
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ question }),
+        body: JSON.stringify({ question, history }),
       });
 
       if (!response.ok) {
@@ -115,6 +124,7 @@ const ChatBox = forwardRef<ChatBoxRef, ChatBoxProps>(({ onMetadataUpdate, onStag
       const errorMessage: Message = {
         role: 'assistant',
         content: 'Sorry, I encountered an error. Please make sure the backend server is running.',
+        isError: true,
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {

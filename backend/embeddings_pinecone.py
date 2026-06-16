@@ -8,6 +8,10 @@ from openai import OpenAI
 from pinecone import Pinecone, ServerlessSpec
 from dotenv import load_dotenv
 
+# Model config is centralized so the index is built with the same embedding model
+# and dimension that main.py uses to query it.
+from config import EMBEDDING_MODEL, EMBEDDING_DIMENSION
+
 # Load environment variables
 load_dotenv(override=True)
 
@@ -16,13 +20,13 @@ openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 
 INDEX_NAME = "nicobot-portfolio"
-DIMENSION = 1536  # text-embedding-3-small dimension
 
 def generate_embeddings(texts):
-    """Generate embeddings using OpenAI's text-embedding-3-small model."""
+    """Generate embeddings using the configured OpenAI embedding model."""
     response = openai_client.embeddings.create(
-        model="text-embedding-3-small",
-        input=texts
+        model=EMBEDDING_MODEL,
+        input=texts,
+        dimensions=EMBEDDING_DIMENSION
     )
     return [item.embedding for item in response.data]
 
@@ -42,7 +46,7 @@ def main():
         print(f"Creating new Pinecone index: {INDEX_NAME}")
         pc.create_index(
             name=INDEX_NAME,
-            dimension=DIMENSION,
+            dimension=EMBEDDING_DIMENSION,
             metric="cosine",
             spec=ServerlessSpec(
                 cloud="aws",
@@ -83,7 +87,8 @@ def main():
 
     print(f"\n✓ Successfully uploaded {len(docs)} vectors to Pinecone!")
     print(f"  - Index name: {INDEX_NAME}")
-    print(f"  - Dimension: {DIMENSION}")
+    print(f"  - Embedding model: {EMBEDDING_MODEL}")
+    print(f"  - Dimension: {EMBEDDING_DIMENSION}")
     print(f"  - Metric: cosine")
 
     # Get index stats
