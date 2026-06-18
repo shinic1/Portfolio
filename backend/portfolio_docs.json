@@ -4,8 +4,16 @@
     "content": "About Nico Bourel: Nico is an applied AI engineer who builds recruitment workflow automation, LLM-based quality evaluation systems, enterprise voice-agent demos, and full-stack AI applications. He converted from an engineering internship into a full-time role at AnSer AI. He is comfortable across Python, TypeScript, FastAPI, React, OpenAI integrations, and network administration, and is targeting Applied AI Engineer, Junior Backend Engineer, and Junior Full-Stack Engineer roles."
   },
   {
+    "id": "summary_strengths",
+    "content": "Strengths and Work Style: Nico's standout strengths are shipping AI products from prototype to production quickly, working comfortably across the full stack (Python and FastAPI on the backend, React and TypeScript on the frontend, plus the infrastructure around them), and owning problems end-to-end from first prototype through deployment and ongoing operations. He does his best work on small, fast-moving, startup-style teams."
+  },
+  {
     "id": "availability_1",
     "content": "Location and Availability: Nico is based in Green Bay, Wisconsin and is open to relocation, with particular interest in Miami and South Florida. He is looking for Applied AI Engineer, Junior Backend Engineer, and Junior Full-Stack Engineer roles."
+  },
+  {
+    "id": "availability_work_authorization",
+    "content": "Work Authorization: Nico is authorized to work in the United States under OPT (Optional Practical Training). He is happy to discuss the specifics with prospective employers."
   },
   {
     "id": "experience_anser_overview",

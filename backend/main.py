@@ -4,11 +4,12 @@ Provides /chat endpoint for RAG-based question answering using Pinecone.
 """
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field, field_validator, ValidationError
 from contextlib import asynccontextmanager
 import os
 import re
+import json
 import traceback
 from openai import OpenAI
 from pinecone import Pinecone
@@ -442,7 +443,8 @@ TOPIC_SUGGESTIONS = {
     'availability': [
         "Where is he based?",
         "Is he open to relocation?",
-        "What roles is he looking for?"
+        "What roles is he looking for?",
+        "Is he authorized to work in the US?"
     ],
     'contact': [
         "How can I reach him?",
@@ -531,15 +533,18 @@ def build_retrieval_query(query: str, history: list | None = None) -> str:
     combined = " ".join(prior_user_turns + [query]).strip()
     return combined[:1000]
 
-def generate_response(query: str, context_docs: list[str], has_contact_intent: bool = False, history: list | None = None) -> tuple[str, GenerationStats]:
-    """Generate a grounded response with the configured chat model and return stats."""
-    import time
-    start_time = time.time()
-
+def strip_echoed_question(history: list | None, question: str) -> list:
+    """Drop a trailing user turn identical to the current question so a client that
+    echoes the current turn into history doesn't cause it to be sent twice."""
     history = history or []
-    context = "\n\n".join(context_docs)
+    if (history and getattr(history[-1], "role", None) == "user"
+            and (history[-1].content or "").strip() == (question or "").strip()):
+        return history[:-1]
+    return history
 
-    system_prompt = """You are Nico Bourel's portfolio assistant, a friendly guide that helps recruiters and hiring managers learn about Nico's background, skills, projects, and experience.
+
+# Shared system prompt for both the streaming and non-streaming generation paths.
+SYSTEM_PROMPT = """You are Nico Bourel's portfolio assistant, a friendly guide that helps recruiters and hiring managers learn about Nico's background, skills, projects, and experience.
 
 Ground every answer in the provided context and the conversation so far. Do not invent details the context does not support.
 
@@ -547,13 +552,21 @@ CONVERSATION AWARENESS: Use the conversation history to resolve references. If t
 
 SCOPE: You only discuss Nico - his work, skills, projects, education, and how to reach him. Only if a question is clearly unrelated to Nico (general trivia, coding help, other people) give a brief, friendly redirect back to what you can share about Nico. Never use that redirect for a genuine question about Nico; if a specific detail isn't in the context, share the closest relevant thing you do know instead.
 
+REPRESENTING NICO: You represent Nico to recruiters, so you are on his side. NEVER invent, speculate about, or list his weaknesses, red flags, gaps, concerns, or reasons not to hire him - not even as "possible concerns to verify". If asked for weaknesses/red flags, say you can't speak to weaknesses and redirect to his demonstrated strengths and how he'd fit the role. Don't disparage him or rank him against other candidates. If asked for facts that simply aren't in the context (e.g., salary, work authorization, references), say you don't have that detail and point them to his contact links - never guess or fabricate it.
+
 SHORT REPLIES: If the user just acknowledges ("yes", "ok", "sure", "thanks", "cool"), don't repeat your previous message. Either deliver what you just offered or suggest a specific new thing to explore about Nico.
 
 CONTACT: If the user asks about LinkedIn, GitHub, email, the resume, or how to reach Nico, respond warmly and point them to the clickable link shown below your message.
 
 STYLE: Be friendly, concise, and specific. Lead with the answer. When discussing projects or experience, highlight concrete technologies and any outcomes or metrics. Vary your wording - avoid repeating the same canned sentence."""
 
-    # Add hint if this is a contact question
+
+def build_generation_messages(query: str, context_docs: list[str], has_contact_intent: bool = False, history: list | None = None) -> list[dict]:
+    """Assemble the chat messages (system prompt, recent turns, then the current
+    question with retrieved context) shared by both generation paths."""
+    history = history or []
+    context = "\n\n".join(context_docs)
+
     contact_hint = ""
     if has_contact_intent:
         contact_hint = "\n\nNOTE: This is a contact/social question. Respond positively and mention the clickable link provided below. Do not say you can't share this."
@@ -563,43 +576,89 @@ STYLE: Be friendly, concise, and specific. Lead with the answer. When discussing
 
 Using the information above and our conversation so far, answer this question: {query}{contact_hint}"""
 
-    # Rebuild the conversation for the model: system prompt, recent turns, then the
-    # current question (with retrieved context attached).
-    messages = [{"role": "system", "content": system_prompt}]
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
     for turn in history[-6:]:
         role = getattr(turn, "role", None)
         content = getattr(turn, "content", None)
         if role in ("user", "assistant") and content:
             messages.append({"role": role, "content": content})
     messages.append({"role": "user", "content": user_prompt})
+    return messages
 
-    # GPT-5 generation: use max_completion_tokens (not max_tokens), leave temperature
-    # at its default, and pass reasoning_effort via extra_body so it works regardless
-    # of the installed SDK version.
-    response = openai_client.chat.completions.create(
-        model=GENERATION_MODEL,
-        messages=messages,
-        max_completion_tokens=GENERATION_MAX_COMPLETION_TOKENS,
-        extra_body={"reasoning_effort": GENERATION_REASONING_EFFORT}
-    )
 
-    end_time = time.time()
-    time_ms = int((end_time - start_time) * 1000)
+# GPT-5 generation: use max_completion_tokens (not max_tokens), leave temperature at
+# its default, and pass reasoning_effort via extra_body so it works regardless of the
+# installed SDK version. These kwargs are shared by both generation paths.
+def _generation_kwargs(messages: list[dict]) -> dict:
+    return {
+        "model": GENERATION_MODEL,
+        "messages": messages,
+        "max_completion_tokens": GENERATION_MAX_COMPLETION_TOKENS,
+        "extra_body": {"reasoning_effort": GENERATION_REASONING_EFFORT},
+    }
 
-    reply = response.choices[0].message.content or "Sorry, I couldn't generate a response just now - could you rephrase that?"
-    prompt_tokens = response.usage.prompt_tokens if response.usage else 0
-    completion_tokens = response.usage.completion_tokens if response.usage else 0
-    total_tokens = response.usage.total_tokens if response.usage else 0
 
+_EMPTY_REPLY_FALLBACK = "Sorry, I couldn't generate a response just now - could you rephrase that?"
+
+
+def generate_response(query: str, context_docs: list[str], has_contact_intent: bool = False, history: list | None = None) -> tuple[str, GenerationStats]:
+    """Generate a grounded response with the configured chat model and return stats."""
+    import time
+    start_time = time.time()
+
+    messages = build_generation_messages(query, context_docs, has_contact_intent, history)
+    response = openai_client.chat.completions.create(**_generation_kwargs(messages))
+
+    time_ms = int((time.time() - start_time) * 1000)
+    reply = response.choices[0].message.content or _EMPTY_REPLY_FALLBACK
+    usage = response.usage
     stats = GenerationStats(
-        tokens=total_tokens,
+        tokens=usage.total_tokens if usage else 0,
         time_ms=time_ms,
         model=GENERATION_MODEL,
-        prompt_tokens=prompt_tokens,
-        completion_tokens=completion_tokens
+        prompt_tokens=usage.prompt_tokens if usage else 0,
+        completion_tokens=usage.completion_tokens if usage else 0,
+    )
+    return reply, stats
+
+
+def stream_generation(query: str, context_docs: list[str], has_contact_intent: bool = False, history: list | None = None):
+    """Stream the chat model's answer. Yields {'type':'token','text':...} per token and
+    finally {'type':'generation_done','stats':GenerationStats,'reply':full_text}."""
+    import time
+    start_time = time.time()
+
+    messages = build_generation_messages(query, context_docs, has_contact_intent, history)
+    stream = openai_client.chat.completions.create(
+        **_generation_kwargs(messages),
+        stream=True,
+        stream_options={"include_usage": True},
     )
 
-    return reply, stats
+    full = ""
+    usage = None
+    for chunk in stream:
+        if chunk.choices:
+            text = getattr(chunk.choices[0].delta, "content", None)
+            if text:
+                full += text
+                yield {"type": "token", "text": text}
+        if getattr(chunk, "usage", None):
+            usage = chunk.usage
+
+    if not full:
+        full = _EMPTY_REPLY_FALLBACK
+        yield {"type": "token", "text": full}
+
+    time_ms = int((time.time() - start_time) * 1000)
+    stats = GenerationStats(
+        tokens=usage.total_tokens if usage else 0,
+        time_ms=time_ms,
+        model=GENERATION_MODEL,
+        prompt_tokens=usage.prompt_tokens if usage else 0,
+        completion_tokens=usage.completion_tokens if usage else 0,
+    )
+    yield {"type": "generation_done", "stats": stats, "reply": full}
 
 @app.post("/chat", response_model=ChatResponse)
 @limiter.limit("20/minute")
@@ -634,10 +693,7 @@ async def chat(request: Request, chat_request: ChatRequest):
 
         # Drop a trailing history turn identical to the current question so a client
         # that echoes the current turn into history doesn't cause it to be sent twice.
-        convo_history = chat_request.history
-        if (convo_history and convo_history[-1].role == "user"
-                and convo_history[-1].content.strip() == chat_request.question.strip()):
-            convo_history = convo_history[:-1]
+        convo_history = strip_echoed_question(chat_request.history, chat_request.question)
 
         # Step 1: Generate embedding (context-aware so follow-ups retrieve correctly)
         retrieval_query = build_retrieval_query(chat_request.question, convo_history)
@@ -707,6 +763,113 @@ async def chat(request: Request, chat_request: ChatRequest):
     except Exception as e:
         print(f"Error processing chat request: {e}")
         raise HTTPException(status_code=500, detail="An error occurred while processing your request")
+
+def _sse(payload: dict) -> str:
+    """Format a dict as a Server-Sent Events data frame."""
+    return f"data: {json.dumps(payload)}\n\n"
+
+
+@app.post("/chat/stream")
+@limiter.limit("20/minute")
+async def chat_stream(request: Request, chat_request: ChatRequest):
+    """Streaming variant of /chat using Server-Sent Events. Emits real pipeline
+    events (embedding -> retrieval -> generation tokens -> done) so the UI can show
+    live tokens and honest stage timings instead of simulated ones."""
+    if not chat_request.question.strip():
+        raise HTTPException(status_code=400, detail="Question cannot be empty")
+
+    def event_generator():
+        import time
+        pipeline_start = time.time()
+        try:
+            # Step 0: contact/social shortcut (no RAG needed)
+            panels, has_contact_intent = detect_intent_and_generate_panels(chat_request.question)
+            if should_use_shortcut_response(chat_request.question, panels):
+                suggestion_panels = [
+                    Panel(type='suggestion', title=q, action='Ask this', is_question=True)
+                    for q in TOPIC_SUGGESTIONS['contact'][:3]
+                ]
+                reply = build_shortcut_reply(panels)
+                yield _sse({"type": "token", "text": reply})
+                total_time = int((time.time() - pipeline_start) * 1000)
+                yield _sse({
+                    "type": "done",
+                    "reply": reply,
+                    "metadata": build_shortcut_metadata(total_time).model_dump(),
+                    "panels": [p.model_dump() for p in panels + suggestion_panels],
+                })
+                return
+
+            convo_history = strip_echoed_question(chat_request.history, chat_request.question)
+
+            # Step 1: embedding
+            retrieval_query = build_retrieval_query(chat_request.question, convo_history)
+            query_embedding, embedding_stats = embed_query(retrieval_query)
+            yield _sse({"type": "embedding", "embedding_stats": embedding_stats.model_dump()})
+
+            # Step 2: retrieval
+            relevant_docs, retrieval_matches, retrieval_time_ms = retrieve_relevant_docs(query_embedding, k=3)
+            yield _sse({
+                "type": "retrieval",
+                "retrieval_stats": [m.model_dump() for m in retrieval_matches],
+                "retrieval_time_ms": retrieval_time_ms,
+            })
+
+            if not relevant_docs:
+                reply = "I don't have any information to answer that question."
+                yield _sse({"type": "token", "text": reply})
+                total_time = int((time.time() - pipeline_start) * 1000)
+                metadata = ChatMetadata(
+                    embedding_stats=embedding_stats,
+                    retrieval_stats=[],
+                    generation_stats=GenerationStats(tokens=0, time_ms=0, model=GENERATION_MODEL, prompt_tokens=0, completion_tokens=0),
+                    confidence_score=0.0,
+                    total_time_ms=total_time,
+                    retrieval_time_ms=retrieval_time_ms,
+                )
+                yield _sse({"type": "done", "reply": reply, "metadata": metadata.model_dump(), "panels": []})
+                return
+
+            # Step 3: streaming generation
+            reply = ""
+            generation_stats = None
+            for ev in stream_generation(chat_request.question, relevant_docs, has_contact_intent, convo_history):
+                if ev["type"] == "token":
+                    reply += ev["text"]
+                    yield _sse({"type": "token", "text": ev["text"]})
+                elif ev["type"] == "generation_done":
+                    generation_stats = ev["stats"]
+                    reply = ev["reply"]
+
+            # Step 4: panels + metadata
+            suggestion_panels = generate_follow_up_suggestions(chat_request.question, reply, retrieval_matches)
+            all_panels = panels + suggestion_panels
+            confidence = sum(m.score for m in retrieval_matches) / len(retrieval_matches) if retrieval_matches else 0.0
+            total_time = int((time.time() - pipeline_start) * 1000)
+            metadata = ChatMetadata(
+                embedding_stats=embedding_stats,
+                retrieval_stats=retrieval_matches,
+                generation_stats=generation_stats,
+                confidence_score=round(confidence, 4),
+                total_time_ms=total_time,
+                retrieval_time_ms=retrieval_time_ms,
+            )
+            yield _sse({
+                "type": "done",
+                "reply": reply,
+                "metadata": metadata.model_dump(),
+                "panels": [p.model_dump() for p in all_panels],
+            })
+        except Exception as e:
+            print(f"Error processing chat stream: {e}")
+            yield _sse({"type": "error", "detail": "An error occurred while processing your request"})
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no", "Connection": "keep-alive"},
+    )
+
 
 @app.get("/")
 async def root():

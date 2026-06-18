@@ -262,6 +262,7 @@ function App() {
           ref={chatBoxRef}
           onMetadataUpdate={handleMetadataUpdate}
           onStageUpdate={handleStageUpdate}
+          onProcessingEnd={() => { setIsProcessing(false); setProcessingStage('idle'); }}
           geekMode={geekMode}
           isWarmingBackend={isWarmingBackend}
         />
