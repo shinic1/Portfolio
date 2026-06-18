@@ -429,3 +429,55 @@
     min-height: 44px;
   }
 }
+
+/* Lead-capture CTA on the welcome screen */
+.intro-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: white;
+  background: var(--color-accent);
+  border-radius: var(--radius-full);
+  text-decoration: none;
+  transition: all var(--transition-default);
+}
+
+.intro-cta:hover {
+  background: var(--color-accent-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.intro-cta-icon {
+  font-size: 1.1em;
+}
+
+/* Inline source citations under assistant answers */
+.message-sources {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.sources-label {
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.source-chip {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  background: var(--color-accent-muted);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-full);
+  padding: 2px var(--space-3);
+  white-space: nowrap;
+}
