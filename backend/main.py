@@ -442,7 +442,6 @@ TOPIC_SUGGESTIONS = {
     ],
     'availability': [
         "Where is he based?",
-        "Is he open to relocation?",
         "What roles is he looking for?",
         "Is he authorized to work in the US?"
     ],

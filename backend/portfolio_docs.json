@@ -1,7 +1,7 @@
 [
   {
     "id": "summary_1",
-    "content": "About Nico Bourel: Nico is an applied AI engineer who builds recruitment workflow automation, LLM-based quality evaluation systems, enterprise voice-agent demos, and full-stack AI applications. He converted from an engineering internship into a full-time role at AnSer AI. He is comfortable across Python, TypeScript, FastAPI, React, OpenAI integrations, and network administration, and is targeting Applied AI Engineer, Junior Backend Engineer, and Junior Full-Stack Engineer roles."
+    "content": "About Nico Bourel: Nico is an applied AI engineer who builds recruitment workflow automation, LLM-based quality evaluation systems, enterprise voice-agent integrations, and full-stack AI applications. He converted from an engineering internship into a full-time role at AnSer AI. He works across Python, TypeScript, FastAPI, React, OpenAI integrations, production infrastructure, network administration, and HIPAA-aware sensitive-data handling, and is targeting Applied AI Engineer, Junior Backend Engineer, Junior Full-Stack Engineer, and Forward Deployed Engineer roles."
   },
   {
     "id": "summary_strengths",
@@ -9,7 +9,7 @@
   },
   {
     "id": "availability_1",
-    "content": "Location and Availability: Nico is based in Green Bay, Wisconsin and is open to relocation, with particular interest in Miami and South Florida. He is looking for Applied AI Engineer, Junior Backend Engineer, and Junior Full-Stack Engineer roles."
+    "content": "Location and Relocation: Nico is based in Green Bay, Wisconsin and is open to relocation, including Miami and South Florida. He can relocate within two weeks. He is interested in Applied AI Engineer, Junior Backend Engineer, Junior Full-Stack Engineer, and Forward Deployed Engineer roles."
   },
   {
     "id": "availability_work_authorization",
@@ -17,19 +17,31 @@
   },
   {
     "id": "experience_anser_overview",
-    "content": "Work Experience - AnSer AI (Green Bay, WI): Nico is an AI Engineer at AnSer AI (June 2026 to present) after converting from his AI Engineering Internship (May 2025 to May 2026). He works on a four-person, startup-style team and delivers AI products from prototype through production, supporting customer demos, deployments, and internal operations."
+    "content": "Work Experience - AnSer AI (Green Bay, WI): Nico is an AI Engineer at AnSer AI (June 2026 to present) after converting from his AI Engineering Internship (May 2025 to May 2026). He works on a four-person, startup-style team and delivers AI products from prototype through production, using Claude Code and Codex daily across customer demos, deployments, and internal operations."
   },
   {
     "id": "experience_anser_qa",
-    "content": "Work Experience - AnSer AI, LLM evaluation: Nico improved grading accuracy across roughly 20,000 calls by contributing to 26 LLM-based performance-scoring scripts that evaluate agent performance and call quality."
+    "content": "Work Experience - AnSer AI, LLM evaluation: Nico improved grading accuracy across 200,000+ calls by contributing to 26 LLM-based performance-scoring scripts for call quality, knowledge, attitude, and compliance review."
   },
   {
     "id": "experience_anser_ats",
-    "content": "Work Experience - AnSer AI, recruiting platform: Nico increased recruitment efficiency for 30+ monthly applicants by building and self-hosting a production applicant tracking system (ATS). It includes LiveKit-powered screening calls, candidate message tracking, secure database tables, a customized Cal.com fork for scheduling, a Cloudflare Tunnel, and Coolify-managed production workflows."
+    "content": "Work Experience - AnSer AI, recruiting platform: Nico increased recruitment efficiency for 30+ monthly applicants by building and self-hosting a production applicant tracking system (ATS). It includes LiveKit-powered screening calls, candidate message tracking, secure database tables, a customized multi-tenant Cal.com fork, Cloudflare Tunnel, Coolify-managed workflows, Harbor, and self-hosted GitHub Actions CI/CD runners on a local Proxmox cluster. AI conducts screening calls but does not make hiring decisions or recommendations; hiring managers review the calls and decide whether candidates advance."
+  },
+  {
+    "id": "experience_anser_twilio",
+    "content": "Work Experience - AnSer AI, Twilio workflow automation: Nico built Twilio integrations spanning scheduled two-way messaging, inbound webhooks and status callbacks, reply-driven candidate state changes, and duplicate handling."
   },
   {
     "id": "experience_anser_voice",
     "content": "Work Experience - AnSer AI, voice agents: Nico built and presented client-specific voice-agent demos using Vapi and ElevenLabs, adding human-in-the-loop routing so callers can transfer to a real person at any point in the conversation."
+  },
+  {
+    "id": "experience_anser_sensitive_data",
+    "content": "Work Experience - AnSer AI, sensitive-data handling: Nico built AI and automation workflows using HIPAA-aware secure-data handling practices for sensitive call, candidate, and customer information. This describes HIPAA-aware engineering practices and does not claim formal HIPAA compliance ownership."
+  },
+  {
+    "id": "experience_anser_telecom",
+    "content": "Work Experience - AnSer AI, voice infrastructure and monitoring: Nico engineered a secure Twilio-to-AMTELCO Infinity call path through a Palo Alto firewall restricted to Twilio-published IP ranges, blocking unauthorized probing while preserving inbound call delivery. He used a Session Border Controller (SBC) and passive Garland network TAP to capture bidirectional stereo audio for monitoring in VoIPmonitor."
   },
   {
     "id": "experience_anser_network",
@@ -49,7 +61,7 @@
   },
   {
     "id": "skills_backend_data",
-    "content": "Technical Skills - Backend and Data: Nico works with FastAPI, Node.js, REST APIs, WebSockets, Prisma, PostgreSQL, and the Pinecone vector database."
+    "content": "Technical Skills - Backend and Data: Nico works with FastAPI, Node.js, REST APIs, webhooks, cron jobs, WebSockets, Prisma, PostgreSQL, Pinecone, Kafka, Change Data Capture (CDC), Cloudflare Workers, and Cloudflare Vectorize."
   },
   {
     "id": "skills_frontend_mobile",
@@ -61,7 +73,7 @@
   },
   {
     "id": "skills_infra_security",
-    "content": "Technical Skills - Infrastructure and Security: Nico has hands-on experience with Palo Alto Networks firewalls, GlobalProtect VPN, Google Cloud Platform (GCP), Railway, Docker, Coolify, Cloudflare Tunnel, network administration, access control, and troubleshooting."
+    "content": "Technical Skills - Infrastructure and Security: Nico has hands-on experience with CI/CD, Grafana, Palo Alto Networks firewalls, GlobalProtect VPN, Google Cloud Platform (GCP), Railway, Docker, Harbor, Proxmox, Coolify, Cloudflare Tunnel, self-hosted GitHub Actions runners, network administration, access control, HIPAA-aware data handling, and troubleshooting."
   },
   {
     "id": "skills_tools",
@@ -69,15 +81,19 @@
   },
   {
     "id": "project_nicobot",
-    "content": "Project - NicoBot AI Portfolio (personal project): A recruiter-facing AI portfolio, live at https://swedev.online, with a React and TypeScript interface (built with Vite) backed by a FastAPI service. It runs a retrieval-augmented generation (RAG) pipeline that embeds questions, retrieves verified facts from Pinecone, and generates grounded OpenAI responses. Nico exposed retrieval and generation telemetry and protected the public API with input validation, sanitization, and rate limiting. Tech stack: React, TypeScript, Vite, FastAPI, OpenAI, Pinecone, Vercel."
+    "content": "Project - NicoBot AI Portfolio (personal project): A recruiter-facing AI portfolio, live at https://swedev.online, with a React and TypeScript interface built with Vite and a TypeScript API deployed to Cloudflare Workers. Its RAG pipeline uses text-embedding-3-large to retrieve verified facts from Cloudflare Vectorize and gpt-5.4-mini to stream grounded conversational responses. Nico exposed retrieval and generation telemetry and protected the public API with validation, sanitization, and rate limiting. He migrated the API and vector retrieval layer from a sleeping container architecture to Cloudflare Workers and Vectorize to eliminate application cold starts. Tech stack: React, TypeScript, Vite, Cloudflare Workers, Cloudflare Vectorize, OpenAI, Vercel."
   },
   {
     "id": "project_jarvis",
-    "content": "Project - Jarvis Personal AI Assistant (personal project): An event-driven, multimodal assistant with wake-word detection, voice interaction, face-based presence tracking, persistent memory, and OpenAI tool calling. Nico developed custom ReSpeaker microphone-array firmware for room-based interaction with a locally deployed Linux assistant, and built a real-time FastAPI and WebSocket API plus a React dashboard for assistant state, conversations, weather, news, flights, and Spotify. He orchestrated asynchronous vision, audio, LLM, scheduling, and shutdown services. Tech stack: Python, Linux, FastAPI, React, TypeScript, OpenAI, OpenCV, WebSockets."
+    "content": "Project - Apex Personal AI Assistant (personal project; repository historically named real-jarvis): An event-driven, multimodal assistant with wake-word detection, voice interaction, face-based presence tracking, persistent memory, and OpenAI tool calling. Nico developed custom ReSpeaker microphone-array firmware for room-based interaction with a locally deployed Linux assistant, and built a real-time FastAPI and WebSocket API plus a React dashboard for assistant state, conversations, weather, news, flights, and Spotify. He orchestrated asynchronous vision, audio, LLM, scheduling, and shutdown services. Tech stack: Python, Linux, FastAPI, React, TypeScript, OpenAI, OpenCV, WebSockets."
+  },
+  {
+    "id": "project_jetter",
+    "content": "Project - Jetter (personal project): A SwiftUI iOS application that generates timezone-aware jet-lag plans from flight routes and traveler sleep preferences. Nico integrated live AeroDataBox flight lookup with manual route entry, bundled airport search, and local JSON trip persistence, and built scheduling services for sleep cycles, meal timing, readiness scoring, pre-flight preparation, and shareable trip summaries. Tech stack: Swift, SwiftUI, Foundation, AeroDataBox API, local JSON persistence. Public repository: https://github.com/shinic1/Jetter."
   },
   {
     "id": "ownership_1",
-    "content": "Project Ownership: Nico's personal projects are the NicoBot AI Portfolio (live at https://swedev.online) and the Jarvis Personal AI Assistant. His professional work at AnSer AI - the applicant tracking system, the 26 LLM-based call-scoring scripts, and the Vapi and ElevenLabs voice-agent demos - is company work he can discuss at a public level rather than personal side projects."
+    "content": "Project Ownership: Nico's personal projects are the NicoBot AI Portfolio (live at https://swedev.online), Apex Personal AI Assistant, and Jetter. His professional work at AnSer AI - the applicant tracking system, Twilio integrations, 26 LLM-based call-scoring scripts, customer-specific voice-agent demos, and voice infrastructure - is company work he can discuss at a public level rather than personal side projects or prototypes built for unrelated employers."
   },
   {
     "id": "education_1",

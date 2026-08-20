@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import './ChatBox.css';
 import MessagePanel, { type Panel } from './MessagePanel';
+import FeaturedWork from './FeaturedWork';
 
 interface NetworkMetadata {
   embedding_stats: {
@@ -50,7 +51,6 @@ interface ChatBoxProps {
   onStageUpdate?: (stage: 'embedding' | 'retrieval' | 'generation') => void;
   onProcessingEnd?: () => void;
   geekMode?: boolean;
-  isWarmingBackend?: boolean;
 }
 
 // One streamed Server-Sent Event from /chat/stream.
@@ -76,29 +76,36 @@ const SOURCE_LABELS: Record<string, string> = {
   contact: 'Contact',
 };
 
+function labelForDocId(docId: string): string {
+  const prefix = (docId || '').split('_')[0];
+  return SOURCE_LABELS[prefix] || 'Profile';
+}
+
 function sourceLabels(metadata?: NetworkMetadata): string[] {
   if (!metadata?.retrieval_stats?.length) return [];
   const labels: string[] = [];
   for (const match of metadata.retrieval_stats) {
-    const prefix = (match.doc_id || '').split('_')[0];
-    const label = SOURCE_LABELS[prefix] || 'Profile';
+    const label = labelForDocId(match.doc_id);
     if (!labels.includes(label)) labels.push(label);
   }
   return labels;
 }
 
-// Prefilled "request an intro" email so recruiters can reach Nico in one click.
-const INTRO_MAILTO =
-  'mailto:nico.bourel@swedev.online' +
-  '?subject=' + encodeURIComponent('Reaching out from your AI portfolio') +
-  '&body=' + encodeURIComponent('Hi Nico,\n\nI came across your AI portfolio and would love to connect about an opportunity.\n\n');
-
-const ChatBox = forwardRef<ChatBoxRef, ChatBoxProps>(({ onMetadataUpdate, onStageUpdate, onProcessingEnd, isWarmingBackend = false }, ref) => {
+const ChatBox = forwardRef<ChatBoxRef, ChatBoxProps>(({ onMetadataUpdate, onStageUpdate, onProcessingEnd }, ref) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [latestMetadata, setLatestMetadata] = useState<NetworkMetadata | undefined>();
+  const [expandedSources, setExpandedSources] = useState<Set<number>>(new Set());
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+
+  const toggleSources = (idx: number) => {
+    setExpandedSources(prev => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx); else next.add(idx);
+      return next;
+    });
+  };
 
   const scrollToBottom = () => {
     if (messagesContainerRef.current) {
@@ -258,26 +265,8 @@ const ChatBox = forwardRef<ChatBoxRef, ChatBoxProps>(({ onMetadataUpdate, onStag
   return (
     <div className="chatbox-container">
       <div className="messages-container" ref={messagesContainerRef}>
-        {isWarmingBackend && (
-          <div className="startup-banner">
-            <span className="startup-pulse"></span>
-            <div className="startup-copy">
-              <strong>Warming up AI search</strong>
-              <span>First reply can take a moment while the backend wakes up.</span>
-            </div>
-          </div>
-        )}
-
         {messages.length === 0 && (
-          <div className="welcome-message">
-            <div className="welcome-icon">🤖</div>
-            <h2>Hey there! I'm Nebula</h2>
-            <p>Your AI guide to Nico's portfolio. Ask me anything about his projects, skills, experience, or education!</p>
-            <a className="intro-cta" href={INTRO_MAILTO}>
-              <span className="intro-cta-icon">📧</span>
-              Request an intro
-            </a>
-          </div>
+          <FeaturedWork onSelect={sendMessage} disabled={isLoading} />
         )}
 
         {messages.map((message, index) => (
@@ -292,9 +281,10 @@ const ChatBox = forwardRef<ChatBoxRef, ChatBoxProps>(({ onMetadataUpdate, onStag
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
                       components={{
-                        a: ({ node: _node, ...props }) => (
-                          <a {...props} target="_blank" rel="noopener noreferrer" />
-                        ),
+                        a: ({ node, ...props }) => {
+                          void node;
+                          return <a {...props} target="_blank" rel="noopener noreferrer" />;
+                        },
                       }}
                     >
                       {message.content}
@@ -306,10 +296,42 @@ const ChatBox = forwardRef<ChatBoxRef, ChatBoxProps>(({ onMetadataUpdate, onStag
               </div>
               {message.role === 'assistant' && !message.isError && sourceLabels(message.metadata).length > 0 && (
                 <div className="message-sources">
-                  <span className="sources-label">Based on</span>
-                  {sourceLabels(message.metadata).map(label => (
-                    <span key={label} className="source-chip">{label}</span>
-                  ))}
+                  <div className="sources-row">
+                    <span className="sources-label">Based on</span>
+                    {sourceLabels(message.metadata).map(label => (
+                      <button
+                        key={label}
+                        type="button"
+                        className="source-chip"
+                        onClick={() => toggleSources(index)}
+                        aria-expanded={expandedSources.has(index)}
+                        title="Show the facts behind this answer"
+                      >
+                        {label}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      className="sources-toggle"
+                      onClick={() => toggleSources(index)}
+                      aria-expanded={expandedSources.has(index)}
+                    >
+                      {expandedSources.has(index) ? 'Hide sources ▴' : 'Show sources ▾'}
+                    </button>
+                  </div>
+                  {expandedSources.has(index) && (
+                    <div className="sources-detail">
+                      {(message.metadata?.retrieval_stats ?? []).map((m, i) => (
+                        <div key={i} className="source-item">
+                          <div className="source-item-head">
+                            <span className="source-item-label">{labelForDocId(m.doc_id)}</span>
+                            <span className="source-item-score">{Math.round(m.score * 100)}% match</span>
+                          </div>
+                          <p className="source-item-snippet">{m.snippet}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
               {message.panels && message.panels.length > 0 && (
@@ -345,7 +367,7 @@ const ChatBox = forwardRef<ChatBoxRef, ChatBoxProps>(({ onMetadataUpdate, onStag
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={isWarmingBackend ? "AI search is warming up..." : "Ask me anything about Nico..."}
+          placeholder="Ask me anything about Nico..."
           disabled={isLoading}
           className="chat-input"
         />

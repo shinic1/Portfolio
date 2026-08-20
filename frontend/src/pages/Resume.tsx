@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import resumePdf from '../assets/Resume Nico Bourel updated.pdf'
+import resumePdf from '../assets/Nico_Bourel_Resume.pdf'
 import './Resume.css'
 
 function Resume() {
@@ -16,7 +16,7 @@ function Resume() {
         </button>
         <a
           href={resumePdf}
-          download="Resume_Nico_Bourel.pdf"
+          download="Nico_Bourel_Resume.pdf"
           className="download-button"
         >
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

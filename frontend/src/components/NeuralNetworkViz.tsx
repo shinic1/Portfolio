@@ -149,7 +149,7 @@ export default function NeuralNetworkViz({ isProcessing, metadata, processingSta
             // Input layer: Light up during embedding generation
             node.activation = Math.min(1, node.activation + 0.08);
           } else if (processingStage === 'retrieval' && node.layer === 1) {
-            // Hidden layer: Light up during Pinecone search
+            // Hidden layer: Light up during Vectorize search
             node.activation = Math.min(1, node.activation + 0.1);
             // If we have retrieval results, use actual scores
             if (metadata?.retrieval_stats[node.index]) {
@@ -362,7 +362,7 @@ export default function NeuralNetworkViz({ isProcessing, metadata, processingSta
             <h3 className="tech-section-title">🔍 Retrieval Layer</h3>
             {metadata.retrieval_time_ms !== undefined && (
               <div className="model-badge">
-                Pinecone Query: {metadata.retrieval_time_ms}ms
+                Vectorize Query: {metadata.retrieval_time_ms}ms
               </div>
             )}
             <div className="retrieval-docs">

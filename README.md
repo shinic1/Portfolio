@@ -11,12 +11,10 @@ A recruiter-facing portfolio where visitors **chat with an AI** about my work, s
 ![React](https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
-![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
 ![OpenAI](https://img.shields.io/badge/OpenAI-412991?logo=openai&logoColor=white)
-![Pinecone](https://img.shields.io/badge/Pinecone-000000?logo=pinecone&logoColor=white)
+![Cloudflare Workers](https://img.shields.io/badge/Cloudflare_Workers-F38020?logo=cloudflare&logoColor=white)
+![Cloudflare Vectorize](https://img.shields.io/badge/Cloudflare_Vectorize-F38020?logo=cloudflare&logoColor=white)
 ![Vercel](https://img.shields.io/badge/Vercel-000000?logo=vercel&logoColor=white)
-![Render](https://img.shields.io/badge/Render-46E3B7?logo=render&logoColor=white)
 
 </div>
 
@@ -38,19 +36,19 @@ Most portfolios are static. This one answers questions.
 ```mermaid
 flowchart LR
   U([Visitor]) -->|question + history| FE[React + Vite SPA<br/>· Vercel ·]
-  FE -->|POST /chat/stream| BE[FastAPI<br/>· Render ·]
-  BE -->|1 · embed query| E[OpenAI<br/>text-embedding-3-large]
-  E --> BE
-  BE -->|2 · vector search| P[(Pinecone<br/>vector DB)]
-  P --> BE
-  BE -->|3 · grounded prompt| G[OpenAI<br/>gpt-5.4-mini]
-  G -->|streamed tokens| BE
-  BE -->|SSE: embedding ▸ retrieval ▸ tokens ▸ done| FE
+  FE -->|POST /chat/stream| W[TypeScript API<br/>· Cloudflare Worker ·]
+  W -->|1 · embed query| E[OpenAI<br/>text-embedding-3-large]
+  E --> W
+  W -->|2 · vector search| V[(Cloudflare<br/>Vectorize)]
+  V --> W
+  W -->|3 · grounded prompt| G[OpenAI<br/>gpt-5.4-mini]
+  G -->|streamed tokens| W
+  W -->|SSE: embedding ▸ retrieval ▸ tokens ▸ done| FE
 ```
 
 **The RAG flow, end to end:**
 1. The question (plus recent conversation) is embedded with `text-embedding-3-large` (1536-dim).
-2. Pinecone returns the top-k most similar knowledge-base facts by cosine similarity.
+2. Cloudflare Vectorize returns the top-k most similar knowledge-base facts by cosine similarity.
 3. `gpt-5.4-mini` answers grounded **only** in those facts, streamed back token-by-token.
 4. Embedding stats, retrieval scores, and generation telemetry stream alongside to power "geek mode."
 
@@ -59,9 +57,9 @@ flowchart LR
 | Layer | Tech |
 |---|---|
 | **Frontend** | React · TypeScript · Vite · React Router · react-markdown |
-| **Backend** | FastAPI · Python · SlowAPI (rate limiting) |
-| **AI** | OpenAI `text-embedding-3-large` + `gpt-5.4-mini` · Pinecone (vector DB) |
-| **Hosting** | Vercel (frontend) · Render (backend) |
+| **API** | Cloudflare Workers · TypeScript · Server-Sent Events · native rate limiting |
+| **AI** | OpenAI `text-embedding-3-large` + `gpt-5.4-mini` · Cloudflare Vectorize |
+| **Hosting** | Vercel (frontend) · Cloudflare Workers (API + retrieval) |
 
 ## 📂 Project structure
 
@@ -71,38 +69,34 @@ flowchart LR
 │   └── src/
 │       ├── components/         # ChatBox (SSE), NeuralNetworkViz, MessagePanel, SuggestedQuestions
 │       └── pages/              # Résumé viewer
-└── backend/                    # FastAPI service
-    ├── main.py                 # /chat, /chat/stream (SSE), /warmup — the RAG pipeline
-    ├── config.py               # centralized model configuration
-    ├── embeddings_pinecone.py  # builds the Pinecone index from portfolio_docs.json
-    ├── portfolio_docs.json     # the knowledge base (source of truth = résumé)
-    └── tests/                  # pytest suite
+├── cloudflare-worker/          # production RAG API
+│   ├── src/                    # retrieval, prompting, routes, and SSE streaming
+│   ├── scripts/                # deterministic Vectorize indexing
+│   └── test/                   # contract and behavior tests
+└── backend/                    # legacy FastAPI rollback service
+    └── portfolio_docs.json     # curated knowledge base
 ```
 
 ## 🚀 Getting started
 
-**Prerequisites:** Node 20+, Python 3.12+, and OpenAI + Pinecone API keys.
+**Prerequisites:** Node 20+, an OpenAI API key, and a Cloudflare account with Wrangler authenticated.
 
-### Backend
+### API
 ```bash
-cd backend
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-
-# create .env with:
-#   OPENAI_API_KEY=sk-...
-#   PINECONE_API_KEY=...
-
-python embeddings_pinecone.py        # build/refresh the vector index
-uvicorn main:app --reload            # → http://localhost:8000
+cd cloudflare-worker
+npm install
+npx wrangler vectorize create nicobot-portfolio --dimensions=1536 --metric=cosine
+OPENAI_API_KEY=sk-... npm run index
+npx wrangler secret put OPENAI_API_KEY
+npm run dev                         # local Worker runtime
 ```
 
 ### Frontend
 ```bash
 cd frontend
 npm install
-echo "VITE_API_URL=http://localhost:8000" > .env
-npm run dev                          # → http://localhost:5173
+# set VITE_API_URL to the local or deployed Worker URL
+npm run dev                         # → http://localhost:5173
 ```
 
 ## 🧠 Updating the knowledge base
@@ -110,7 +104,7 @@ npm run dev                          # → http://localhost:5173
 The bot only knows what's in `backend/portfolio_docs.json`. After editing it — or changing the embedding model — rebuild the index:
 
 ```bash
-cd backend && python embeddings_pinecone.py   # clears + re-embeds all vectors
+cd cloudflare-worker && npm run index
 ```
 
 ## 🔌 API
@@ -119,7 +113,7 @@ cd backend && python embeddings_pinecone.py   # clears + re-embeds all vectors
 |---|---|---|
 | `POST` | `/chat` | RAG answer (JSON) with full pipeline metadata |
 | `POST` | `/chat/stream` | Same answer, streamed via Server-Sent Events |
-| `GET` | `/warmup` | Warms the Pinecone query path (handles free-tier cold starts) |
+| `GET` | `/warmup` | Compatibility health probe; no application warm-up is required |
 | `GET` | `/` | Health check |
 
 Every request is validated, sanitized, and rate-limited (20 req/min per IP).
@@ -127,13 +121,14 @@ Every request is validated, sanitized, and rate-limited (20 req/min per IP).
 ## 🧪 Tests
 
 ```bash
-cd backend && pytest      # validation · history · retrieval · GPT-5 params · streaming
+cd cloudflare-worker && npm run validate
+cd frontend && npm run build && npm run lint
 ```
 
 ## ☁️ Deployment
 
-- **Frontend → Vercel** — set `VITE_API_URL` to the backend URL, build with `npm run build`.
-- **Backend → Render** — start command `uvicorn main:app --host 0.0.0.0 --port $PORT`; set `OPENAI_API_KEY` and `PINECONE_API_KEY`. Re-run `embeddings_pinecone.py` whenever the knowledge base or embedding model changes.
+- **Frontend → Vercel** — set `VITE_API_URL` to the deployed Worker URL, then build with `npm run build`.
+- **API → Cloudflare Workers** — bind the `nicobot-portfolio` Vectorize index, add `OPENAI_API_KEY` with Wrangler secrets, then run `npm run deploy`.
 
 ---
 
